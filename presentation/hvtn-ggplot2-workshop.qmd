@@ -1,0 +1,293 @@
+---
+title: "Visualizations with ggplot2 and immunogenicity data"
+author: Bryan Mayer
+date: 2022-10-26
+format: revealjs
+editor: visual
+---
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(cowplot)
+mock_bama = subset(hvtnReports::mock_bama, antigen == "ag_b" & isotype == "IgG")
+```
+
+## Code and Attribution
+
+The code for this presentation is available here:
+
+#### Many, many people have made ggplot2 tutorials!
+
+-   Primary material source: [**R for Data Science**](https://r4ds.had.co.nz/data-visualisation.html)
+-   
+
+## Goal today -- Make the template HVTN figure
+
+![example figure.](ex-figure.png)
+
+## Getting Started
+
+-   Clone the repository:
+-   Load the project and open .
+-   Work from this file and directory.
+-   Dependencies: tidyverse (specifically: ggplot2, dplyr), cowplot
+
+## Roadmap
+
+-   ggplot2 basics
+-   grammar and philosophy (brief)
+-   leading examples
+-   build the HVTN BAMA response rate + magnitude plot
+
+## ggplot2 - the quintessential example
+
+**Basic template:**
+
+```{r, eval = F, echo = T}
+ggplot(data = <DATA>) + 
+  <GEOM_FUNCTION>(mapping = aes(<MAPPINGS>))
+
+```
+
+**In action:**
+
+```{r, echo = T, fig.width=6,fig.height=3}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, color = class))
+
+```
+
+## Aesthetics and Layering
+
+## Boxplot example (mpg) - setup
+
+Did highway mpg (`hwy`) improve between 1999 and 2008 (`year`)?
+
+-   Data fields: `hwy` `year` (which is x?, which is y?)
+
+-   Geometry? `geom_boxplot`
+
+-   Mappings: let's map year to color.
+
+## Box plot example (mpg) - v1
+
+why factor??
+
+```{r, echo = T}
+
+mpg_base = ggplot(mpg, aes(x = factor(year), y = hwy, colour = factor(year))) +
+  geom_boxplot()
+
+mpg_base
+```
+
+## Box plot example (mpg) - steps to improve
+
+Take 5 minutes. Work with your neighbor.
+
+-   make the labels nicer, label x-axis as 'year', y-axis as 'highway mpg'
+
+-   make 1998 = red, 2008 = black; then 1998 = black, 2008 = red. Can you generalize this task?
+
+-   Show the raw data as points. Bonus: jitter them.
+
+-   Change the theme. `?theme`. Hint/answer: try `+ theme_bw()` or `+ theme_classic()`
+
+## Box plot example (mpg) - finalize
+
+-   There is rarely a single correct approach.
+
+-   Questions? Try anything else?
+
+```{r, echo = T}
+mpg_colors = c(`1999` = "black", `2008` = "red")
+
+mpg_final = mpg_base +
+  geom_point(position = position_jitter(width = 0.2)) +
+  scale_color_manual(values = mpg_colors) +
+  labs(x = "year", y = "highway mpg", colour = "year") +
+  theme_classic()
+
+mpg_final
+```
+
+## Faceting
+
+-   `facet_grid` or `facet_wrap` create multiple panels across a variable level.
+
+-   `facet_grid`: structured, explicit mapping of rows and col (rectangular matrix).
+
+    -   2-var ex. `+ facet_grid(rows = vars(var1), cols = vars(var2))` or `+ facet_grid(var1 ~ var2)`
+
+    -   ex. `+ facet_grid(rows = vars(var1))` or `+ facet_grid(var1 ~ .)`
+
+-   `facet_wrap`: sequence of panels across variable or layered variables.
+
+    -   ex. `+ facet_wrap(vars(var1))` or `+ facet_wrap(~ var1)`
+
+-   Last mpg exercise: use facteting to investigate whether 1998 vs. 2008 highway mpg varies by car `class`
+
+## Box plot example (mpg) - faceting
+
+```{r, echo = T}
+mpg_final +
+  facet_wrap(~ class) 
+```
+
+## HVTN Example
+
+![Will build this figure in 3 parts.](ex-figure-markup.png)
+
+## HVTN - Data
+
+```{r, echo = T}
+
+dplyr::glimpse(hvtnReports::mock_bama)
+
+```
+
+We have fixed colors and shapes, let's assign those now:
+
+```{r}
+
+hvtn_pl_colors = c(T1 =  "#1749FF", T2 = "#D92321", T3 = "#0AB7C9", P = "#787873")
+hvtn_pl_shapes = c(T1 =  16, T2 = 16, T3 = 16, P = 16, Negative = 2)
+
+```
+
+## Response magnitude box plots
+
+```{r}
+
+mock_bama$grp_response = if_else(mock_bama$response == 0, "Negative", mock_bama$rx_code)
+pl_colors_response = c(pl_colors, Negative = "#8F8F8F")
+
+set.seed(14)
+bp_pl = ggplot(data = mock_bama, aes(x = rx_code, y = pmax(100, delta), color = grp_response)) +
+  #stat_boxplot(data = subset(mock_bama, response == 1),
+  #             geom = "errorbar", width = 0.5, show.legend = F, ) +
+  geom_boxplot(data = subset(mock_bama, response == 1), show.legend = F, outlier.colour = NA) +
+  geom_point(aes(shape = grp_response, group = rx_code), 
+             position = position_jitter(width = 0.2)) +
+  scale_colour_manual("", values = pl_colors_response) +
+  scale_shape_manual("", values = pl_shapes) +
+  facet_wrap(~visitno, labeller = 
+               as_labeller(c(`5` = "Visit 5",
+                             `7` = "Visit 7",
+                             `11` = "Visit 11"))) +
+  scale_x_discrete(limits = names(pl_colors)) +
+  labs(y = "IgG binding antibody units (MFI - blank)", x = "") +
+  scale_y_log10(breaks = c(100, 1000, 2000, 3000, 5000, 10000),
+                label = c("< 100", 1000, 2000, 3000, 5000, 10000)) +
+  theme_classic() +
+  theme(strip.background = element_blank(), panel.background = element_rect(color="black"),
+        legend.position = "bottom", axis.ticks.x = element_blank(), strip.text = element_blank())
+
+
+
+
+```
+
+## Response rate barplot
+
+```{r}
+
+ggplot(mock_bama, aes(x = rx_code, y = 100*response, fill = rx_code)) +
+  stat_summary_bin(fun = "mean", geom = "bar") +
+  scale_fill_manual(values = pl_colors, guide = "none") +
+  facet_wrap(~visitno, labeller = 
+               as_labeller(c(`5` = "Visit 5",
+                             `7` = "Visit 7",
+                             `11` = "Visit 11"))) +
+  scale_x_discrete(limits = names(pl_colors)) +
+  labs(y = "Response rate (%)", x = "") +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 102)) +
+  theme_classic() +
+  theme(strip.background = element_blank(), panel.background = element_rect(color="black"))
+
+
+  geom_bar(aes(weight = response), stat="count")
+
+```
+
+```{r}
+
+response_rate_summary = mock_bama %>%
+  group_by(rx_code, antigen, visitno) %>%
+  summarize(
+    Total = n(),
+    Responders = sum(response),
+    rr = mean(response),
+    .groups = "drop"
+  )
+
+```
+
+```{r}
+
+
+rr_bar = ggplot(response_rate_summary, aes(x = rx_code, y = 100*rr, fill = rx_code)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = pl_colors, guide = "none") +
+  facet_wrap(~visitno, labeller = 
+               as_labeller(c(`5` = "Visit 5",
+                             `7` = "Visit 7",
+                             `11` = "Visit 11"))) +
+  scale_x_discrete(limits = names(pl_colors)) +
+  labs(y = "Response rate (%)", x = "") +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 102)) +
+  theme_classic() +
+  theme(strip.background = element_blank(), panel.background = element_rect(color="black"))
+
+rr_bar
+
+```
+
+```{r}
+
+rr_txt_pl = ggplot(response_rate_summary, aes(x = rx_code, y = 1, label = paste(Responders, Total, sep = "\n"))) +
+  geom_text() +
+    facet_wrap(~visitno, labeller = 
+               as_labeller(c(`5` = "Visit 5",
+                             `7` = "Visit 7",
+                             `11` = "Visit 11"))) +
+  scale_x_discrete(limits = names(pl_colors)) +
+  scale_y_continuous(breaks = 1, labels = "Responders\nTotal", expand = c(0, 0)) +
+  labs(y = "") +
+  theme(panel.background = element_blank(), axis.text.x = element_blank(),
+        axis.title.x = element_blank(), axis.ticks = element_blank(),
+        strip.background = element_blank(), strip.text = element_blank(), 
+        axis.text.y = element_text(size = 16), plot.margin = margin())
+
+rr_txt_pl
+
+```
+
+```{r}
+
+ cowplot::plot_grid(rr_bar+theme(axis.text.x = element_blank()) + ggtitle("HVTN Trial IgG Antibody Responses to ag_b"), 
+                   rr_txt_pl, bp_pl, 
+                   rel_heights = c(15, 2, 25), 
+                   nrow = 3, align = "v", axis = "l") +
+  draw_figure_label(label = paste("SOURCE: SCHARP bmayer ", Sys.time()), size = 12, position = "bottom.left")
+
+# p
+
+```
+
+```{r}
+1 + 1
+```
+
+```{r}
+
+
+ggplot(VISCfunctions::exampleData_BAMA, aes(x = visitno, 
+                                            y = magnitude, 
+                                            colour = factor(group))) +
+  geom_point() +
+  geom_line(aes(group = pubID)) +
+  facet_wrap(~antigen)
+
+```
