@@ -105,8 +105,7 @@ Take 5 minutes. Work with your neighbor.
     -   Use defaults: `+ theme_bw()` or `+ theme_classic()`
 :::
 
-::: {.fragment}
-
+::: fragment
 ```{r}
 
 countdown(
@@ -115,7 +114,6 @@ countdown(
   font_size = "1em"
 )
 ```
-
 :::
 
 ## Box plot example (mpg) - finalize
@@ -186,8 +184,7 @@ axis_grp_order = c("T1", "T2", "T3", "P")
 
 ## Magnitude plot - Mapping (discussion)
 
-![](ex-figure-magnitude.png) 
-
+![](ex-figure-magnitude.png)
 
 -   Data fields?
     -   Transformations and facets?
