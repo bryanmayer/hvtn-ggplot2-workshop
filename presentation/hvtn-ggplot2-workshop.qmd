@@ -2,36 +2,45 @@
 title: "Visualizations with ggplot2 and immunogenicity data"
 author: Bryan Mayer
 date: 2022-10-26
-format: revealjs
+format: 
+  revealjs:
+    smaller: true
+    slide-number: true
 editor: visual
 ---
+
+## Getting Started
 
 ```{r}
 library(dplyr)
 library(ggplot2)
 library(cowplot)
-mock_bama = subset(hvtnReports::mock_bama, antigen == "ag_b" & isotype == "IgG")
+library(countdown)
+mock_bama_example = subset(hvtnReports::mock_bama, antigen == "ag_b" & isotype == "IgG")
 ```
+
+-   Clone the repository:
+-   <https://github.com/mayerbry/hvtn-ggplot2-workshop>
+-   Load the project and open xxx.Rmd
+-   Follow instructions in first chunk:
+    -   Make sure you are in the correct directory.
+
+    -   Load libraries: ggplot2, dplyr, cowplot
+
+    -   Load in data: `mockBAMA_example`
 
 ## Code and Attribution
 
-The code for this presentation is available here:
+The presentation and code is in the `presentation/` folder.
 
 #### Many, many people have made ggplot2 tutorials!
 
 -   Primary material source: [**R for Data Science**](https://r4ds.had.co.nz/data-visualisation.html)
 -   
 
-## Goal today -- Make the template HVTN figure
+## Goal today -- Template HVTN figure
 
-![example figure.](ex-figure.png)
-
-## Getting Started
-
--   Clone the repository:
--   Load the project and open .
--   Work from this file and directory.
--   Dependencies: tidyverse (specifically: ggplot2, dplyr), cowplot
+![](ex-figure.png){fig-align="center" width="110%"}
 
 ## Roadmap
 
@@ -72,9 +81,7 @@ Did highway mpg (`hwy`) improve between 1999 and 2008 (`year`)?
 
 ## Box plot example (mpg) - v1
 
-why factor??
-
-```{r, echo = T}
+```{r, echo = T, fig.cap = "Why Factor?"}
 
 mpg_base = ggplot(mpg, aes(x = factor(year), y = hwy, colour = factor(year))) +
   geom_boxplot()
@@ -86,21 +93,38 @@ mpg_base
 
 Take 5 minutes. Work with your neighbor.
 
--   make the labels nicer, label x-axis as 'year', y-axis as 'highway mpg'
+::: {style="font-size: 0.75em"}
+-   **Make the labels nicer.**
+    -   label x-axis as 'year', y-axis as 'highway mpg'
+-   **Map year to color.**
+    -   make 1998 = red, 2008 = black
+    -   then 1998 = black, 2008 = red.
+    -   Can you generalize this task?
+-   **Show the raw data as points. (Bonus: jitter them.)**
+-   **Change the theme (`?theme`).**
+    -   Use defaults: `+ theme_bw()` or `+ theme_classic()`
+:::
 
--   make 1998 = red, 2008 = black; then 1998 = black, 2008 = red. Can you generalize this task?
+::: {.fragment}
 
--   Show the raw data as points. Bonus: jitter them.
+```{r}
 
--   Change the theme. `?theme`. Hint/answer: try `+ theme_bw()` or `+ theme_classic()`
+countdown(
+  minutes = 5,
+  #padding = "1px", margin = "5%", 
+  font_size = "1em"
+)
+```
+
+:::
 
 ## Box plot example (mpg) - finalize
 
--   There is rarely a single correct approach.
+::: {style="font-size: 0.75em"}
+```{r, echo = T, fig.cap = "Questions?"}
+#| fig.align = "center",
+#| fig.height = 4
 
--   Questions? Try anything else?
-
-```{r, echo = T}
 mpg_colors = c(`1999` = "black", `2008` = "red")
 
 mpg_final = mpg_base +
@@ -111,22 +135,19 @@ mpg_final = mpg_base +
 
 mpg_final
 ```
+:::
 
 ## Faceting
 
+::: {style="font-size: 0.7em"}
 -   `facet_grid` or `facet_wrap` create multiple panels across a variable level.
-
 -   `facet_grid`: structured, explicit mapping of rows and col (rectangular matrix).
-
     -   2-var ex. `+ facet_grid(rows = vars(var1), cols = vars(var2))` or `+ facet_grid(var1 ~ var2)`
-
     -   ex. `+ facet_grid(rows = vars(var1))` or `+ facet_grid(var1 ~ .)`
-
 -   `facet_wrap`: sequence of panels across variable or layered variables.
-
     -   ex. `+ facet_wrap(vars(var1))` or `+ facet_wrap(~ var1)`
-
 -   Last mpg exercise: use facteting to investigate whether 1998 vs. 2008 highway mpg varies by car `class`
+:::
 
 ## Box plot example (mpg) - faceting
 
@@ -137,46 +158,133 @@ mpg_final +
 
 ## HVTN Example
 
-![Will build this figure in 3 parts.](ex-figure-markup.png)
+Will build this figure in 3 parts
+
+![](ex-figure-markup.png){fig-align="center" width="800" height="600"}
 
 ## HVTN - Data
 
+::: {style="font-size: 0.7em"}
 ```{r, echo = T}
 
-dplyr::glimpse(hvtnReports::mock_bama)
+dplyr::glimpse(mock_bama_example)
 
 ```
+:::
+
+## HVTN - Data setup
 
 We have fixed colors and shapes, let's assign those now:
 
-```{r}
+```{r, echo = T}
 
-hvtn_pl_colors = c(T1 =  "#1749FF", T2 = "#D92321", T3 = "#0AB7C9", P = "#787873")
+hvtn_pl_colors = c(T1 =  "#1749FF", T2 = "#D92321", T3 = "#0AB7C9", P = "#787873", Negative = "#8F8F8F")
 hvtn_pl_shapes = c(T1 =  16, T2 = 16, T3 = 16, P = 16, Negative = 2)
+axis_grp_order = c("T1", "T2", "T3", "P")
 
 ```
 
-## Response magnitude box plots
+## Magnitude plot - Mapping (discussion)
+
+![](ex-figure-magnitude.png) 
+
+
+-   Data fields?
+    -   Transformations and facets?
+-   Geometry?
+-   Mappings?
+-   Challenges?
+
+## Magnitude plot - Mapping
+
+-   Data fields: magnitude (`delta`), groups (`rx_code`), response (`response`)
+    -   Transformations: log-scale plot, truncation of the magnitude
+    -   Facetting: visits (`visitno`)
+-   Geometry: `geom_boxplot`, `geom_point` (jitter)
+-   Mappings: group to color, response to shape
+-   Challenges:
+    -   Separate color for 'Negative' within each group (and legend)
+    -   Exclude non-responders from box plot geometry
+-   Exercise: make magnitude box plot
+    -   Ignore issue of Negative
+    -   Hint 1: use `scale_shape_manual(values = c(2, 16))`
+    -   Hint 2: use `scale_color_manual(values = hvtn_pl_colors)`
+
+```{r}
+#| output-location: fragment
+countdown(
+  minutes = 5,
+  #padding = "1px", margin = "5%", 
+  font_size = "1em"
+)
+```
+
+## Response magnitude box plots - version 1
 
 ```{r}
 
-mock_bama$grp_response = if_else(mock_bama$response == 0, "Negative", mock_bama$rx_code)
-pl_colors_response = c(pl_colors, Negative = "#8F8F8F")
+mag_bp_v1 = ggplot(data = mock_bama_example, aes(x = rx_code, y = pmax(100, delta), color = rx_code)) +
+  geom_boxplot(data = subset(mock_bama_example, response == 1), show.legend = F, outlier.colour = NA) +
+  geom_point(aes(shape = factor(response), group = rx_code), position = position_jitter(width = 0.2)) +
+  scale_colour_manual("", values = hvtn_pl_colors) +
+  scale_shape_manual("", values = c(2, 16)) +
+  scale_x_discrete(limits = axis_grp_order) +
+  labs(y = "IgG binding antibody units (MFI - blank)", x = "") +
+  facet_wrap(~ visitno) +
+  scale_y_log10(breaks = c(100, 1000, 2000, 3000, 5000, 10000)) +
+  theme_classic() 
 
-set.seed(14)
-bp_pl = ggplot(data = mock_bama, aes(x = rx_code, y = pmax(100, delta), color = grp_response)) +
-  #stat_boxplot(data = subset(mock_bama, response == 1),
-  #             geom = "errorbar", width = 0.5, show.legend = F, ) +
-  geom_boxplot(data = subset(mock_bama, response == 1), show.legend = F, outlier.colour = NA) +
+mag_bp_v1
+
+```
+
+## Response magnitude box plots - tinkering
+
+-   Rethink the mapping: `rx_code` -\> x-axis, but need new map to color.
+
+```{r, echo = T}
+
+mock_bama_example$grp_response = if_else(mock_bama_example$response == 0, 
+                                         "Negative", 
+                                         mock_bama_example$rx_code)
+
+set.seed(14) # this keeps the jitter consistent each time
+
+mag_bp_v2  = ggplot(data = mock_bama_example, aes(x = rx_code, y = pmax(100, delta), color = grp_response)) +
+  geom_boxplot(data = subset(mock_bama_example, response == 1), show.legend = F, outlier.colour = NA) +
+  geom_point(aes(shape = grp_response, group = rx_code), position = position_jitter(width = 0.2)) +
+  scale_colour_manual("", values = hvtn_pl_colors) +
+  scale_shape_manual("", values = hvtn_pl_shapes) +
+  facet_wrap(~visitno) +
+  scale_x_discrete(limits = axis_grp_order) +
+  labs(y = "IgG binding antibody units (MFI - blank)", x = "") +
+  scale_y_log10(breaks = c(100, 1000, 2000, 3000, 5000, 10000),
+                label = c("< 100", 1000, 2000, 3000, 5000, 10000)) +
+  theme_classic() +
+  theme(panel.background = element_rect(color="black"), legend.position = "bottom")
+
+```
+
+## Response magnitude box plots - version 2
+
+-   To do before final figure: remove panel (strip) labels
+
+```{r}
+mag_bp_v2 
+```
+
+```{r, eval = F}
+mag_bp_v2  = ggplot(data = mock_bama_example, aes(x = rx_code, y = pmax(100, delta), color = grp_response)) +
+  stat_boxplot(data = subset(mock_bama_example, response == 1), geom = "errorbar", width = 0.5, show.legend = F) +
+  geom_boxplot(data = subset(mock_bama_example, response == 1), show.legend = F, outlier.colour = NA) +
   geom_point(aes(shape = grp_response, group = rx_code), 
              position = position_jitter(width = 0.2)) +
-  scale_colour_manual("", values = pl_colors_response) +
-  scale_shape_manual("", values = pl_shapes) +
-  facet_wrap(~visitno, labeller = 
-               as_labeller(c(`5` = "Visit 5",
+  scale_colour_manual("", values = hvtn_pl_colors) +
+  scale_shape_manual("", values = hvtn_pl_shapes) +
+  facet_wrap(~visitno, labeller = as_labeller(c(`5` = "Visit 5",
                              `7` = "Visit 7",
                              `11` = "Visit 11"))) +
-  scale_x_discrete(limits = names(pl_colors)) +
+  scale_x_discrete(limits = names(hvtn_pl_colors)) +
   labs(y = "IgG binding antibody units (MFI - blank)", x = "") +
   scale_y_log10(breaks = c(100, 1000, 2000, 3000, 5000, 10000),
                 label = c("< 100", 1000, 2000, 3000, 5000, 10000)) +
@@ -184,14 +292,13 @@ bp_pl = ggplot(data = mock_bama, aes(x = rx_code, y = pmax(100, delta), color = 
   theme(strip.background = element_blank(), panel.background = element_rect(color="black"),
         legend.position = "bottom", axis.ticks.x = element_blank(), strip.text = element_blank())
 
-
-
+bp_pl
 
 ```
 
 ## Response rate barplot
 
-```{r}
+```{r, eval = F}
 
 ggplot(mock_bama, aes(x = rx_code, y = 100*response, fill = rx_code)) +
   stat_summary_bin(fun = "mean", geom = "bar") +
@@ -211,7 +318,7 @@ ggplot(mock_bama, aes(x = rx_code, y = 100*response, fill = rx_code)) +
 
 ```
 
-```{r}
+```{r, eval = F}
 
 response_rate_summary = mock_bama %>%
   group_by(rx_code, antigen, visitno) %>%
@@ -224,7 +331,7 @@ response_rate_summary = mock_bama %>%
 
 ```
 
-```{r}
+```{r, eval = F}
 
 
 rr_bar = ggplot(response_rate_summary, aes(x = rx_code, y = 100*rr, fill = rx_code)) +
@@ -244,7 +351,7 @@ rr_bar
 
 ```
 
-```{r}
+```{r, eval = F}
 
 rr_txt_pl = ggplot(response_rate_summary, aes(x = rx_code, y = 1, label = paste(Responders, Total, sep = "\n"))) +
   geom_text() +
@@ -264,7 +371,7 @@ rr_txt_pl
 
 ```
 
-```{r}
+```{r, eval = F}
 
  cowplot::plot_grid(rr_bar+theme(axis.text.x = element_blank()) + ggtitle("HVTN Trial IgG Antibody Responses to ag_b"), 
                    rr_txt_pl, bp_pl, 
@@ -273,21 +380,5 @@ rr_txt_pl
   draw_figure_label(label = paste("SOURCE: SCHARP bmayer ", Sys.time()), size = 12, position = "bottom.left")
 
 # p
-
-```
-
-```{r}
-1 + 1
-```
-
-```{r}
-
-
-ggplot(VISCfunctions::exampleData_BAMA, aes(x = visitno, 
-                                            y = magnitude, 
-                                            colour = factor(group))) +
-  geom_point() +
-  geom_line(aes(group = pubID)) +
-  facet_wrap(~antigen)
 
 ```
