@@ -397,23 +397,28 @@
 
 </div>
 <ul>
-<li>Clone the repository:</li>
+<li>Download the workshop Rmd script to follow along.</li>
 <li><a href="https://github.com/mayerbry/hvtn-ggplot2-workshop" class="uri">https://github.com/mayerbry/hvtn-ggplot2-workshop</a></li>
 <li>Load the project and open xxx.Rmd</li>
 <li>Follow instructions in first chunk:
 <ul>
-<li><p>Make sure you are in the correct directory.</p></li>
-<li><p>Load libraries: ggplot2, dplyr, cowplot</p></li>
-<li><p>Load in data: <code>mockBAMA_example</code></p></li>
+<li>Make sure you are in the correct directory.</li>
+<li>Load libraries: ggplot2, dplyr, cowplot</li>
+<li>Load in data: <code>mock_bama_example</code></li>
 </ul></li>
 </ul>
 </section>
 <section id="code-and-attribution" class="slide level2">
 <h2>Code and Attribution</h2>
-<p>The presentation and code is in the <code>presentation/</code> folder.</p>
+<p>The presentation and code will be publicly available on GitHub.</p>
 <h4 id="many-many-people-have-made-ggplot2-tutorials">Many, many people have made ggplot2 tutorials!</h4>
 <ul>
-<li>Primary material source: <a href="https://r4ds.had.co.nz/data-visualisation.html"><strong>R for Data Science</strong></a></li>
+<li>Primary material sources:
+<ul>
+<li><a href="https://r4ds.had.co.nz/data-visualisation.html"><strong>R for Data Science</strong></a></li>
+<li><a href="https://ggplot2.tidyverse.org/reference" class="uri">https://ggplot2.tidyverse.org/reference</a></li>
+<li><a href="https://ggplot.library.duke.edu/slides/" class="uri">https://ggplot.library.duke.edu/slides/</a></li>
+</ul></li>
 <li></li>
 </ul>
 </section>
@@ -425,7 +430,6 @@
 <h2>Roadmap</h2>
 <ul>
 <li>ggplot2 basics</li>
-<li>grammar and philosophy (brief)</li>
 <li>leading examples</li>
 <li>build the HVTN BAMA response rate + magnitude plot</li>
 </ul>
@@ -443,33 +447,428 @@
 <span id="cb2-2"><a href="#cb2-2"></a>  <span class="fu">geom_point</span>(<span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> displ, <span class="at">y =</span> hwy, <span class="at">color =</span> class))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 </div>
-<img data-src="hvtn-ggplot2-workshop_files/figure-revealjs/unnamed-chunk-3-1.png" width="576" class="r-stretch"></section>
-<section id="aesthetics-and-layering" class="slide level2">
-<h2>Aesthetics and Layering</h2>
+<img data-src="hvtn-ggplot2-workshop_files/figure-revealjs/first-ex-1.png" width="576" class="r-stretch"></section>
+<section id="ggplot2-vs.-base-r-plot" class="slide level2">
+<h2>ggplot2 vs.&nbsp;base R plot</h2>
+<ul>
+<li><p>For simple plots, knowing both is useful.</p>
+<ul>
+<li><code>plot(mpg$displ, mpg$hwy)</code></li>
+<li>Many R packages and objects use plot() on the backend, so knowledge useful.</li>
+</ul></li>
+<li><p>The grammar of ggplot2 eases extension into complex plots.</p>
+<ul>
+<li>Ex. mapping of colors and legend generation is automatic within ggplot2.</li>
+<li>Base R relies on data loops; manually setting up legend post-hoc.</li>
+</ul>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="fu">plot</span>(mpg[mpg<span class="sc">$</span>class <span class="sc">==</span> <span class="st">"compact"</span>, ]<span class="sc">$</span>displ, mpg[mpg<span class="sc">$</span>class <span class="sc">==</span> <span class="st">"compact"</span>, ]<span class="sc">$</span>hwy, <span class="at">col =</span> <span class="st">"orange"</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="fl">1.5</span>, <span class="dv">7</span>),</span>
+<span id="cb3-2"><a href="#cb3-2"></a>     <span class="at">ylab =</span> <span class="st">"hwy"</span>, <span class="at">xlab =</span> <span class="st">"displ"</span>)   </span>
+<span id="cb3-3"><a href="#cb3-3"></a></span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="fu">points</span>(mpg[mpg<span class="sc">$</span>class <span class="sc">==</span> <span class="st">"2seater"</span>, ]<span class="sc">$</span>displ, mpg[mpg<span class="sc">$</span>class <span class="sc">==</span> <span class="st">"2seater"</span>, ]<span class="sc">$</span>hwy, <span class="at">col =</span> <span class="st">"red"</span>)</span>
+<span id="cb3-5"><a href="#cb3-5"></a></span>
+<span id="cb3-6"><a href="#cb3-6"></a><span class="fu">legend</span>(<span class="at">x =</span> <span class="dv">5</span>, <span class="at">y =</span> <span class="dv">40</span>, <span class="fu">c</span>(<span class="st">"compact"</span>, <span class="st">"2seater"</span>), <span class="at">col =</span> <span class="fu">c</span>(<span class="st">"orange"</span>, <span class="st">"red"</span>), <span class="at">pch =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="hvtn-ggplot2-workshop_files/figure-revealjs/base-pl-1.png" width="576"></p>
+</figure>
+</div>
+</div>
+</div></li>
+</ul>
 </section>
+<section id="ggplot2-basics" class="slide level2">
+<h2>ggplot2 Basics</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="co"># explicitly stating 'mapping = aes()' is uncommon. "data = " necessary for geom assignments.</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a>plA <span class="ot">=</span> <span class="fu">ggplot</span>(<span class="at">data =</span> <span class="sc">&lt;</span>DATA<span class="sc">&gt;</span>, <span class="fu">aes</span>(<span class="sc">&lt;</span>MAPPINGS<span class="sc">&gt;</span>)) <span class="sc">+</span> </span>
+<span id="cb4-3"><a href="#cb4-3"></a>  <span class="er">&lt;</span>GEOM_FUNCTION<span class="sc">&gt;</span>()</span>
+<span id="cb4-4"><a href="#cb4-4"></a></span>
+<span id="cb4-5"><a href="#cb4-5"></a>plB <span class="ot">=</span> <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="sc">&lt;</span>MAPPINGS<span class="sc">&gt;</span>)) <span class="sc">+</span> </span>
+<span id="cb4-6"><a href="#cb4-6"></a>  <span class="er">&lt;</span>GEOM_FUNCTION<span class="sc">&gt;</span>(<span class="at">data =</span> <span class="sc">&lt;</span>DATA<span class="sc">&gt;</span>)</span>
+<span id="cb4-7"><a href="#cb4-7"></a></span>
+<span id="cb4-8"><a href="#cb4-8"></a>plC <span class="ot">=</span> <span class="fu">ggplot</span>(<span class="at">data =</span> <span class="sc">&lt;</span>DATA<span class="sc">&gt;</span>) <span class="sc">+</span> </span>
+<span id="cb4-9"><a href="#cb4-9"></a>  <span class="er">&lt;</span>GEOM_FUNCTION<span class="sc">&gt;</span>(<span class="fu">aes</span>(<span class="sc">&lt;</span>MAPPINGS<span class="sc">&gt;</span>))</span>
+<span id="cb4-10"><a href="#cb4-10"></a></span>
+<span id="cb4-11"><a href="#cb4-11"></a>plD <span class="ot">=</span> <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb4-12"><a href="#cb4-12"></a>  <span class="er">&lt;</span>GEOM_FUNCTION<span class="sc">&gt;</span>(<span class="at">data =</span> <span class="sc">&lt;</span>DATA<span class="sc">&gt;</span>, <span class="fu">aes</span>(<span class="sc">&lt;</span>MAPPINGS<span class="sc">&gt;</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div style="font-size: 0.75em">
+<ul>
+<li><code>ggplot()</code> function creates a new plot.
+<ul>
+<li><code>aes()</code> arguments assigned within <code>ggplot()</code> global across all plots unless overrided within a geom.</li>
+</ul></li>
+<li><code>&lt;GEOM_FUNCTION&gt;()</code> (ex. <code>geom_point()</code> scatterplot) draws a geometry on the plot. I.e., the ‘type’(s) of plot.
+<ul>
+<li>Argument assignments within <code>geom_**()</code> will supersede those assigned at <code>ggplot()</code>-level but will not apply to other geoms (local).</li>
+</ul></li>
+<li><code>aes()</code> construct aesthetic mappings.</li>
+<li><code>+</code> is a ggplot2 operator (function) used to build a plot.</li>
+<li>ggplot2 plot objects can be saved as a variables.
+<ul>
+<li>Layers can be added later to a ggplot2 object.</li>
+<li>Advanced: The internals of the ggplot2 object can be manipulated.</li>
+<li>Advanced: Multiple ggplot2 objects can be stored in a list (automation).</li>
+</ul></li>
+</ul>
+</div>
+</section>
+<section id="common-geometries" class="slide level2">
+<h2>Common Geometries</h2>
+<div class="columns">
+<div class="column" style="width:60%;">
+<div class="cell" data-layout-align="left" data-output-location="column-fragment">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-left">
+<figure>
+<p><img data-src="hvtn-ggplot2-workshop_files/figure-revealjs/ex-geoms-1.png" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</div><div class="column" style="width:30%;">
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Type</th>
+<th style="text-align: center;">Function</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">Scatter/Point</td>
+<td style="text-align: center;"><code>geom_point()</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Line</td>
+<td style="text-align: center;"><code>geom_line()</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Box plot</td>
+<td style="text-align: center;"><code>geom_boxplot()</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Bar plot</td>
+<td style="text-align: center;"><code>geom_bar()</code>, <code>geom_col()</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Histogram</td>
+<td style="text-align: center;"><code>geom_histogram()</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Density</td>
+<td style="text-align: center;"><code>geom_density()</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Regression/Spline</td>
+<td style="text-align: center;"><code>geom_smooth()</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Text</td>
+<td style="text-align: center;"><code>geom_text()</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Vert./Horiz. Line</td>
+<td style="text-align: center;"><code>geom_{vh}line()</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Jittered Point</td>
+<td style="text-align: center;"><code>geom_jitter()</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Count</td>
+<td style="text-align: center;"><code>geom_count()</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="combining-geometries" class="slide level2">
+<h2>Combining Geometries</h2>
+<p>Plots with multiple geometries can be quickly made by layering.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>base_boxplot <span class="ot">=</span> <span class="fu">ggplot</span>(<span class="at">data =</span> mpg, <span class="fu">aes</span>(<span class="at">x =</span> class, <span class="at">y =</span> hwy)) </span>
+<span id="cb5-2"><a href="#cb5-2"></a>base_point <span class="ot">=</span> <span class="fu">ggplot</span>(<span class="at">data =</span> mpg, <span class="fu">aes</span>(<span class="at">x =</span> displ, <span class="at">y =</span> hwy)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+
+<img data-src="hvtn-ggplot2-workshop_files/figure-revealjs/comb-geom-pl-1.png" width="960" class="r-stretch quarto-figure-center"></section>
+<section id="aesthetic-mappings" class="slide level2">
+<h2>Aesthetic Mappings</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<ul>
+<li>Aesthetic mappings within <code>aes()</code> link data to an aesthetic.</li>
+<li>Mappings depend on plot geometries.
+<ul>
+<li>Check individual help files for information on them (ex., <code>?geom_text</code>).</li>
+<li>Common source of error, but error message usually informative.</li>
+</ul>
+<blockquote>
+<p>base_boxplot + geom_histogram() Error in <code>f()</code>: ! stat_bin() can only have an x or y aesthetic. Run <code>rlang::last_error()</code> to see where the error occurred.</p>
+</blockquote></li>
+</ul>
+</div><div class="column" style="width:50%;">
+<h4 id="common-aesthetics">Common Aesthetics</h4>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Aesthetic</th>
+<th style="text-align: center;"><code>aes()</code> Argument</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">x-axis</td>
+<td style="text-align: center;"><code>x</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">y-axis</td>
+<td style="text-align: center;"><code>y</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Color outline</td>
+<td style="text-align: center;"><code>color</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Color fill</td>
+<td style="text-align: center;"><code>fill</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Point shape/type</td>
+<td style="text-align: center;"><code>shape</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Point size</td>
+<td style="text-align: center;"><code>size</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Opacity</td>
+<td style="text-align: center;"><code>alpha</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Line type</td>
+<td style="text-align: center;"><code>linetype</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Text</td>
+<td style="text-align: center;"><code>label</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="aesthetic-settings-vs.-mappings" class="slide level2">
+<h2>Aesthetic Settings vs.&nbsp;Mappings</h2>
+<ul>
+<li><strong>Setting</strong>: an aesthetic independent of data, assigned outside of the <code>aes()</code> argument.
+<ul>
+<li>This must be assigned within the appropriate geometry.</li>
+<li>Assigning a setting within <code>aes()</code> is a data mapping, ggplot2 will assume this a variable with a single value.</li>
+</ul></li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> mpg, <span class="fu">aes</span>(<span class="at">x =</span> displ, <span class="at">y =</span> hwy, <span class="at">color =</span> class)) <span class="sc">+</span> <span class="fu">geom_point</span>()</span>
+<span id="cb6-2"><a href="#cb6-2"></a></span>
+<span id="cb6-3"><a href="#cb6-3"></a><span class="fu">ggplot</span>(<span class="at">data =</span> mpg, <span class="fu">aes</span>(<span class="at">x =</span> displ, <span class="at">y =</span> hwy)) <span class="sc">+</span> <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">"blue"</span>)</span>
+<span id="cb6-4"><a href="#cb6-4"></a></span>
+<span id="cb6-5"><a href="#cb6-5"></a><span class="fu">ggplot</span>(<span class="at">data =</span> mpg, <span class="fu">aes</span>(<span class="at">x =</span> displ, <span class="at">y =</span> hwy)) <span class="sc">+</span> <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">color =</span> <span class="st">"blue"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+
+<img data-src="hvtn-ggplot2-workshop_files/figure-revealjs/setting-pl-1.png" width="1248" class="r-stretch quarto-figure-center"></section>
+<section id="continuous-vs.-discrete-aesthetics" class="slide level2">
+<h2>Continuous vs.&nbsp;Discrete Aesthetics</h2>
+<ul>
+<li>Aesthetic mappings depend on type of data.</li>
+<li>ggplot2 will assume numeric classes are continuous.
+<ul>
+<li>If the aesthetics requires a certain data, an informative error will display.
+<ul>
+<li>Depending on geometry, aesthetics may only take one type of data (ex. linetype must be categorical class).</li>
+</ul></li>
+<li>If the aesthetic is flexible, the plot may appear odd (potentially with warning).</li>
+<li>Quick solution: wrap numeric variables in <code>factor()</code> if need discrete mapping.</li>
+</ul></li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> mpg, <span class="fu">aes</span>(<span class="at">x =</span> cyl, <span class="at">y =</span> hwy)) <span class="sc">+</span> <span class="fu">geom_boxplot</span>()</span>
+<span id="cb7-2"><a href="#cb7-2"></a><span class="fu">ggplot</span>(<span class="at">data =</span> mpg, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(cyl), <span class="at">y =</span> hwy)) <span class="sc">+</span> <span class="fu">geom_boxplot</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+
+<img data-src="hvtn-ggplot2-workshop_files/figure-revealjs/cns-bp-pl-1.png" width="1248" class="r-stretch quarto-figure-center"></section>
 <section id="boxplot-example-mpg---setup" class="slide level2">
 <h2>Boxplot example (mpg) - setup</h2>
-<p>Did highway mpg (<code>hwy</code>) improve between 1999 and 2008 (<code>year</code>)?</p>
+<p>Question: Did highway mpg (<code>hwy</code>) improve between 1999 and 2008 (<code>year</code>)?</p>
 <ul>
 <li><p>Data fields: <code>hwy</code> <code>year</code> (which is x?, which is y?)</p></li>
 <li><p>Geometry? <code>geom_boxplot</code></p></li>
 <li><p>Mappings: let’s map year to color.</p></li>
 </ul>
+<p><strong>Take 5 minutes to make this plot. Work with your neighbor.</strong></p>
+<div class="fragment">
+<div class="cell">
+<div class="cell-output-display">
+<div class="countdown" id="timer_f1581ae1" data-update-every="1" tabindex="0" style="right:0;bottom:0;font-size:1em;">
+<div class="countdown-controls"><button class="countdown-bump-down">−</button><button class="countdown-bump-up">+</button></div>
+<code class="countdown-time"><span class="countdown-digits minutes">05</span><span class="countdown-digits colon">:</span><span class="countdown-digits seconds">00</span></code>
+</div>
+</div>
+</div>
+</div>
 </section>
 <section id="box-plot-example-mpg---v1" class="slide level2">
 <h2>Box plot example (mpg) - v1</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>mpg_base <span class="ot">=</span> <span class="fu">ggplot</span>(mpg, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(year), <span class="at">y =</span> hwy, <span class="at">colour =</span> <span class="fu">factor</span>(year))) <span class="sc">+</span></span>
-<span id="cb3-2"><a href="#cb3-2"></a>  <span class="fu">geom_boxplot</span>()</span>
-<span id="cb3-3"><a href="#cb3-3"></a></span>
-<span id="cb3-4"><a href="#cb3-4"></a>mpg_base</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>mpg_base <span class="ot">=</span> <span class="fu">ggplot</span>(mpg, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(year), <span class="at">y =</span> hwy, <span class="at">colour =</span> <span class="fu">factor</span>(year))) <span class="sc">+</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a>  <span class="fu">geom_boxplot</span>()</span>
+<span id="cb8-3"><a href="#cb8-3"></a></span>
+<span id="cb8-4"><a href="#cb8-4"></a>mpg_base</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 </div>
-<img data-src="hvtn-ggplot2-workshop_files/figure-revealjs/unnamed-chunk-4-1.png" width="960" class="r-stretch quarto-figure-center"><p class="caption">Why Factor?</p></section>
-<section id="box-plot-example-mpg---steps-to-improve" class="slide level2">
-<h2>Box plot example (mpg) - steps to improve</h2>
-<p>Take 5 minutes. Work with your neighbor.</p>
+<img data-src="hvtn-ggplot2-workshop_files/figure-revealjs/exercise-1-1.png" width="960" class="r-stretch quarto-figure-center"><p class="caption">Why Factor?</p></section>
+<section id="scale-functions" class="slide level2">
+<h2>Scale functions</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> <span class="sc">&lt;</span>DATA<span class="sc">&gt;</span>, <span class="fu">aes</span>(<span class="sc">&lt;</span>MAPPINGS<span class="sc">&gt;</span>)) <span class="sc">+</span> </span>
+<span id="cb9-2"><a href="#cb9-2"></a>  <span class="er">&lt;</span>GEOM_FUNCTION<span class="sc">&gt;</span>()<span class="sc">&gt;</span> <span class="sc">+</span></span>
+<span id="cb9-3"><a href="#cb9-3"></a>  <span class="er">&lt;</span>SCALE_FUNCTION<span class="sc">&gt;</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>Scale functions: ‘transformation’ of the aesthetic mapping.
+<ul>
+<li>How each level of the data relates to the type of aesthetic.</li>
+<li>First argument is always the element (legend or axis) title.</li>
+<li>Legend or axis labels of data values: <code>limits</code> (breaks), <code>labels</code>.</li>
+<li>A way to apply transformations to the data as they plotted.</li>
+</ul></li>
+<li>Generating of high quality plots often requires manipulation of the scale functions.</li>
+</ul>
+</section>
+<section id="discrete-and-manual-scale-functions" class="slide level2">
+<h2>Discrete and Manual Scale Functions</h2>
+<div style="font-size: 0.65em">
+<ul>
+<li>Discrete scales (<code>scale_*_discrete()</code>): tinkering with palettes, labels and breaks.</li>
+<li>Adjusting discrete x- or y-axis (<code>scale_x_discrete</code>, <code>scale_y_discrete</code>) has some quirks.</li>
+<li>Manual scales (<code>scale_*_manual</code>): explicit mapping of data level to a setting.
+<ul>
+<li><code>scale_color_manual(breaks = c("A", "B"), labels = c("A", "B"), values = c("red", "blue"))</code></li>
+<li>Make sure breaks and labels match as expected.</li>
+</ul></li>
+</ul>
+</div>
 <div style="font-size: 0.75em">
+<div class="cell" data-layout-align="left" data-output-location="fragment">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> mpg, </span>
+<span id="cb10-2"><a href="#cb10-2"></a>       <span class="fu">aes</span>(<span class="at">x =</span> displ, <span class="at">y =</span> hwy, <span class="at">colour =</span> <span class="fu">factor</span>(cyl))) <span class="sc">+</span></span>
+<span id="cb10-3"><a href="#cb10-3"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb10-4"><a href="#cb10-4"></a>  <span class="fu">scale_color_manual</span>(<span class="st">"cylinder #"</span>, <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">6</span>, <span class="dv">8</span>),</span>
+<span id="cb10-5"><a href="#cb10-5"></a>                     <span class="at">labels =</span> <span class="fu">paste</span>(<span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">6</span>, <span class="dv">8</span>), <span class="st">"cylinder"</span>),</span>
+<span id="cb10-6"><a href="#cb10-6"></a>                     <span class="at">values =</span> <span class="fu">c</span>(<span class="st">"red"</span>, <span class="st">"green"</span>, <span class="st">"purple"</span>, <span class="st">"black"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-left">
+<figure>
+<p><img data-src="hvtn-ggplot2-workshop_files/figure-revealjs/scale-map-1.png" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="manual-labeling" class="slide level2">
+<h2>Manual labeling</h2>
+<ul>
+<li>Use named vectors for consistent repeated scale mappings.
+<ul>
+<li>Ex. Same vaccine group color and label assignments across many plots.</li>
+<li>Note: Use ` ` for non-standard R column names.</li>
+</ul></li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>cyl_colors <span class="ot">=</span> <span class="fu">c</span>(<span class="st">`</span><span class="at">4</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"red"</span>, <span class="st">`</span><span class="at">5</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"green"</span>, </span>
+<span id="cb11-2"><a href="#cb11-2"></a>               <span class="st">`</span><span class="at">6</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"purple"</span>, <span class="st">`</span><span class="at">8</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"black"</span>)</span>
+<span id="cb11-3"><a href="#cb11-3"></a></span>
+<span id="cb11-4"><a href="#cb11-4"></a>cyl_labels <span class="ot">=</span>  <span class="fu">paste</span>(<span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">6</span>, <span class="dv">8</span>), <span class="st">"cylinder"</span>)</span>
+<span id="cb11-5"><a href="#cb11-5"></a><span class="fu">names</span>(cyl_labels) <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">6</span>, <span class="dv">8</span>)</span>
+<span id="cb11-6"><a href="#cb11-6"></a></span>
+<span id="cb11-7"><a href="#cb11-7"></a><span class="fu">ggplot</span>(<span class="at">data =</span> mpg, </span>
+<span id="cb11-8"><a href="#cb11-8"></a>       <span class="fu">aes</span>(<span class="at">x =</span> displ, <span class="at">y =</span> hwy, <span class="at">colour =</span> <span class="fu">factor</span>(cyl))) <span class="sc">+</span></span>
+<span id="cb11-9"><a href="#cb11-9"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb11-10"><a href="#cb11-10"></a>  <span class="fu">scale_color_manual</span>(<span class="st">"cylinder #"</span>, <span class="at">values =</span> cyl_colors,</span>
+<span id="cb11-11"><a href="#cb11-11"></a>                     <span class="at">labels =</span> cyl_labels)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+
+</div>
+<img data-src="hvtn-ggplot2-workshop_files/figure-revealjs/scale-manual-1.png" width="960" class="r-stretch"></section>
+<section id="continuous-scales" class="slide level2">
+<h2>Continuous Scales</h2>
+<ul>
+<li>Continuous scale manipulation tends to apply to continuous data mapped to the x- and/or y-axes.</li>
+<li>Common exceptions: heat maps, point size mapping.</li>
+<li>The default x- and y-axis scales are <code>scale_x_continuous</code> and <code>scale_y_continuous</code>.</li>
+</ul>
+<div class="cell">
+
+</div>
+</section>
+<section id="coordinate-functions" class="slide level2">
+<h2>Coordinate functions</h2>
+<div style="font-size: 0.75em">
+<ul>
+<li>Coordinate functions adjust the coordinate system of the plot.
+<ul>
+<li>Not direct transformation to the data: different than scale mappings. Important when summary measures (e.g., median) are computed by ggplot2.</li>
+</ul></li>
+<li>Common coordinate functions:
+<ul>
+<li><code>coord_cartesian()</code>: default. Limit arguments can be used to zoom plot (Example).</li>
+<li><code>coord_flip()</code>: flips x and y on the plots.</li>
+<li><code>coord_polar()</code>: use polar coordinate system.</li>
+<li><code>coord_fixed()</code>: fixes aspect ratio, make ‘square’ plots.</li>
+</ul></li>
+</ul>
+</div>
+<div class="cell">
+
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a>coord_ex <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">grp =</span> <span class="fu">rep</span>(LETTERS[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], <span class="at">each =</span> <span class="dv">10</span>), <span class="at">y =</span> <span class="fu">rnorm</span>(<span class="dv">20</span>))</span>
+<span id="cb12-2"><a href="#cb12-2"></a>pl1 <span class="ot">=</span> <span class="fu">ggplot</span>(coord_ex, <span class="fu">aes</span>(<span class="at">x =</span> grp, <span class="at">y =</span> y))<span class="sc">+</span> <span class="fu">geom_boxplot</span>() <span class="sc">+</span> <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NA</span>))</span>
+<span id="cb12-3"><a href="#cb12-3"></a>pl2 <span class="ot">=</span> <span class="fu">ggplot</span>(coord_ex, <span class="fu">aes</span>(<span class="at">x =</span> grp, <span class="at">y =</span> y))<span class="sc">+</span> <span class="fu">geom_boxplot</span>() <span class="sc">+</span> <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NA</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+
+<img data-src="hvtn-ggplot2-workshop_files/figure-revealjs/coord-pl-1.png" width="960" class="r-stretch quarto-figure-center"></section>
+<section id="making-a-nice-looking-plot." class="slide level2">
+<h2>Making a nice looking plot.</h2>
+<ul>
+<li>Adjusted axes title and labels.
+<ul>
+<li><code>scale_y_continuous("y title", breaks = 5*3:9)</code>.</li>
+</ul></li>
+<li>Adjusting legends.
+<ul>
+<li>Set breaks and labels within the appropriate scale function.</li>
+</ul></li>
+<li>Another way to change legend and axes titles:
+<ul>
+<li><code>labs(x = "x title", y = "y title" colour = "legend title")</code></li>
+<li>Alternative axes title: <code>xlab()</code>, <code>ylab()</code></li>
+</ul></li>
+<li><code>theme()</code>:
+<ul>
+<li>There are lots of plot settings to adjust (see <code>?theme</code>).</li>
+<li>General themes can be made and applied across multiple plots.
+<ul>
+<li>ggplot2 also supplies themes: <code>theme_bw()</code> <code>theme_classic()</code></li>
+</ul></li>
+</ul></li>
+</ul>
+</section>
+<section id="box-plot-example-mpg---improvement" class="slide level2">
+<h2>Box plot example (mpg) - Improvement</h2>
+<p>Take 5 minutes. Work with your neighbor.</p>
 <ul>
 <li><strong>Make the labels nicer.</strong>
 <ul>
@@ -482,16 +881,12 @@
 <li>Can you generalize this task?</li>
 </ul></li>
 <li><strong>Show the raw data as points. (Bonus: jitter them.)</strong></li>
-<li><strong>Change the theme (<code>?theme</code>).</strong>
-<ul>
-<li>Use defaults: <code>+ theme_bw()</code> or <code>+ theme_classic()</code></li>
-</ul></li>
+<li><strong>Apply <code>+ theme_classic()</code></strong></li>
 </ul>
-</div>
 <div class="fragment">
 <div class="cell">
 <div class="cell-output-display">
-<div class="countdown" id="timer_b6befdb9" data-update-every="1" tabindex="0" style="right:0;bottom:0;font-size:1em;">
+<div class="countdown" id="timer_977f1d6a" data-update-every="1" tabindex="0" style="right:0;bottom:0;font-size:1em;">
 <div class="countdown-controls"><button class="countdown-bump-down">−</button><button class="countdown-bump-up">+</button></div>
 <code class="countdown-time"><span class="countdown-digits minutes">05</span><span class="countdown-digits colon">:</span><span class="countdown-digits seconds">00</span></code>
 </div>
@@ -503,19 +898,19 @@
 <h2>Box plot example (mpg) - finalize</h2>
 <div style="font-size: 0.75em">
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>mpg_colors <span class="ot">=</span> <span class="fu">c</span>(<span class="st">`</span><span class="at">1999</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"black"</span>, <span class="st">`</span><span class="at">2008</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"red"</span>)</span>
-<span id="cb4-2"><a href="#cb4-2"></a></span>
-<span id="cb4-3"><a href="#cb4-3"></a>mpg_final <span class="ot">=</span> mpg_base <span class="sc">+</span></span>
-<span id="cb4-4"><a href="#cb4-4"></a>  <span class="fu">geom_point</span>(<span class="at">position =</span> <span class="fu">position_jitter</span>(<span class="at">width =</span> <span class="fl">0.2</span>)) <span class="sc">+</span></span>
-<span id="cb4-5"><a href="#cb4-5"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> mpg_colors) <span class="sc">+</span></span>
-<span id="cb4-6"><a href="#cb4-6"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"year"</span>, <span class="at">y =</span> <span class="st">"highway mpg"</span>, <span class="at">colour =</span> <span class="st">"year"</span>) <span class="sc">+</span></span>
-<span id="cb4-7"><a href="#cb4-7"></a>  <span class="fu">theme_classic</span>()</span>
-<span id="cb4-8"><a href="#cb4-8"></a></span>
-<span id="cb4-9"><a href="#cb4-9"></a>mpg_final</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a>mpg_colors <span class="ot">=</span> <span class="fu">c</span>(<span class="st">`</span><span class="at">1999</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"black"</span>, <span class="st">`</span><span class="at">2008</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"red"</span>)</span>
+<span id="cb13-2"><a href="#cb13-2"></a></span>
+<span id="cb13-3"><a href="#cb13-3"></a>mpg_final <span class="ot">=</span> mpg_base <span class="sc">+</span></span>
+<span id="cb13-4"><a href="#cb13-4"></a>  <span class="fu">geom_point</span>(<span class="at">position =</span> <span class="fu">position_jitter</span>(<span class="at">width =</span> <span class="fl">0.2</span>)) <span class="sc">+</span></span>
+<span id="cb13-5"><a href="#cb13-5"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> mpg_colors) <span class="sc">+</span></span>
+<span id="cb13-6"><a href="#cb13-6"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"year"</span>, <span class="at">y =</span> <span class="st">"highway mpg"</span>, <span class="at">colour =</span> <span class="st">"year"</span>) <span class="sc">+</span></span>
+<span id="cb13-7"><a href="#cb13-7"></a>  <span class="fu">theme_classic</span>()</span>
+<span id="cb13-8"><a href="#cb13-8"></a></span>
+<span id="cb13-9"><a href="#cb13-9"></a>mpg_final</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="hvtn-ggplot2-workshop_files/figure-revealjs/unnamed-chunk-6-1.png" width="960"></p>
+<p><img data-src="hvtn-ggplot2-workshop_files/figure-revealjs/exercise-2-1.png" width="960"></p>
 <p></p><figcaption>Questions?</figcaption><p></p>
 </figure>
 </div>
@@ -544,11 +939,11 @@
 <section id="box-plot-example-mpg---faceting" class="slide level2">
 <h2>Box plot example (mpg) - faceting</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>mpg_final <span class="sc">+</span></span>
-<span id="cb5-2"><a href="#cb5-2"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> class) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>mpg_final <span class="sc">+</span></span>
+<span id="cb14-2"><a href="#cb14-2"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> class) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 </div>
-<img data-src="hvtn-ggplot2-workshop_files/figure-revealjs/unnamed-chunk-7-1.png" width="960" class="r-stretch"></section>
+<img data-src="hvtn-ggplot2-workshop_files/figure-revealjs/facet-ex-1.png" width="960" class="r-stretch"></section>
 <section id="hvtn-example" class="slide level2">
 <h2>HVTN Example</h2>
 <p>Will build this figure in 3 parts</p>
@@ -562,7 +957,7 @@
 <h2>HVTN - Data</h2>
 <div style="font-size: 0.7em">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>dplyr<span class="sc">::</span><span class="fu">glimpse</span>(mock_bama_example)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a>dplyr<span class="sc">::</span><span class="fu">glimpse</span>(mock_bama_example)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Rows: 60
 Columns: 12
@@ -586,9 +981,9 @@ $ response      &lt;dbl&gt; 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1
 <h2>HVTN - Data setup</h2>
 <p>We have fixed colors and shapes, let’s assign those now:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>hvtn_pl_colors <span class="ot">=</span> <span class="fu">c</span>(<span class="at">T1 =</span>  <span class="st">"#1749FF"</span>, <span class="at">T2 =</span> <span class="st">"#D92321"</span>, <span class="at">T3 =</span> <span class="st">"#0AB7C9"</span>, <span class="at">P =</span> <span class="st">"#787873"</span>, <span class="at">Negative =</span> <span class="st">"#8F8F8F"</span>)</span>
-<span id="cb8-2"><a href="#cb8-2"></a>hvtn_pl_shapes <span class="ot">=</span> <span class="fu">c</span>(<span class="at">T1 =</span>  <span class="dv">16</span>, <span class="at">T2 =</span> <span class="dv">16</span>, <span class="at">T3 =</span> <span class="dv">16</span>, <span class="at">P =</span> <span class="dv">16</span>, <span class="at">Negative =</span> <span class="dv">2</span>)</span>
-<span id="cb8-3"><a href="#cb8-3"></a>axis_grp_order <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"T1"</span>, <span class="st">"T2"</span>, <span class="st">"T3"</span>, <span class="st">"P"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a>hvtn_pl_colors <span class="ot">=</span> <span class="fu">c</span>(<span class="at">T1 =</span>  <span class="st">"#1749FF"</span>, <span class="at">T2 =</span> <span class="st">"#D92321"</span>, <span class="at">T3 =</span> <span class="st">"#0AB7C9"</span>, <span class="at">P =</span> <span class="st">"#787873"</span>, <span class="at">Negative =</span> <span class="st">"#8F8F8F"</span>)</span>
+<span id="cb17-2"><a href="#cb17-2"></a>hvtn_pl_shapes <span class="ot">=</span> <span class="fu">c</span>(<span class="at">T1 =</span>  <span class="dv">16</span>, <span class="at">T2 =</span> <span class="dv">16</span>, <span class="at">T3 =</span> <span class="dv">16</span>, <span class="at">P =</span> <span class="dv">16</span>, <span class="at">Negative =</span> <span class="dv">2</span>)</span>
+<span id="cb17-3"><a href="#cb17-3"></a>axis_grp_order <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"T1"</span>, <span class="st">"T2"</span>, <span class="st">"T3"</span>, <span class="st">"P"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="magnitude-plot---mapping-discussion" class="slide level2">
@@ -628,7 +1023,7 @@ $ response      &lt;dbl&gt; 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1
 </ul>
 <div class="cell">
 <div class="cell-output-display">
-<div class="countdown" id="timer_8d536e43" data-update-every="1" tabindex="0" style="right:0;bottom:0;font-size:1em;">
+<div class="countdown" id="timer_9aa9736b" data-update-every="1" tabindex="0" style="right:0;bottom:0;font-size:1em;">
 <div class="countdown-controls"><button class="countdown-bump-down">−</button><button class="countdown-bump-up">+</button></div>
 <code class="countdown-time"><span class="countdown-digits minutes">05</span><span class="countdown-digits colon">:</span><span class="countdown-digits seconds">00</span></code>
 </div>
@@ -638,31 +1033,31 @@ $ response      &lt;dbl&gt; 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1
 <section id="response-magnitude-box-plots---version-1" class="slide level2">
 <h2>Response magnitude box plots - version 1</h2>
 
-<img data-src="hvtn-ggplot2-workshop_files/figure-revealjs/unnamed-chunk-11-1.png" width="960" class="r-stretch"></section>
+<img data-src="hvtn-ggplot2-workshop_files/figure-revealjs/exercise-3-mag-1.png" width="960" class="r-stretch"></section>
 <section id="response-magnitude-box-plots---tinkering" class="slide level2">
 <h2>Response magnitude box plots - tinkering</h2>
 <ul>
 <li>Rethink the mapping: <code>rx_code</code> -&gt; x-axis, but need new map to color.</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>mock_bama_example<span class="sc">$</span>grp_response <span class="ot">=</span> <span class="fu">if_else</span>(mock_bama_example<span class="sc">$</span>response <span class="sc">==</span> <span class="dv">0</span>, </span>
-<span id="cb9-2"><a href="#cb9-2"></a>                                         <span class="st">"Negative"</span>, </span>
-<span id="cb9-3"><a href="#cb9-3"></a>                                         mock_bama_example<span class="sc">$</span>rx_code)</span>
-<span id="cb9-4"><a href="#cb9-4"></a></span>
-<span id="cb9-5"><a href="#cb9-5"></a><span class="fu">set.seed</span>(<span class="dv">14</span>) <span class="co"># this keeps the jitter consistent each time</span></span>
-<span id="cb9-6"><a href="#cb9-6"></a></span>
-<span id="cb9-7"><a href="#cb9-7"></a>mag_bp_v2  <span class="ot">=</span> <span class="fu">ggplot</span>(<span class="at">data =</span> mock_bama_example, <span class="fu">aes</span>(<span class="at">x =</span> rx_code, <span class="at">y =</span> <span class="fu">pmax</span>(<span class="dv">100</span>, delta), <span class="at">color =</span> grp_response)) <span class="sc">+</span></span>
-<span id="cb9-8"><a href="#cb9-8"></a>  <span class="fu">geom_boxplot</span>(<span class="at">data =</span> <span class="fu">subset</span>(mock_bama_example, response <span class="sc">==</span> <span class="dv">1</span>), <span class="at">show.legend =</span> F, <span class="at">outlier.colour =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
-<span id="cb9-9"><a href="#cb9-9"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">shape =</span> grp_response, <span class="at">group =</span> rx_code), <span class="at">position =</span> <span class="fu">position_jitter</span>(<span class="at">width =</span> <span class="fl">0.2</span>)) <span class="sc">+</span></span>
-<span id="cb9-10"><a href="#cb9-10"></a>  <span class="fu">scale_colour_manual</span>(<span class="st">""</span>, <span class="at">values =</span> hvtn_pl_colors) <span class="sc">+</span></span>
-<span id="cb9-11"><a href="#cb9-11"></a>  <span class="fu">scale_shape_manual</span>(<span class="st">""</span>, <span class="at">values =</span> hvtn_pl_shapes) <span class="sc">+</span></span>
-<span id="cb9-12"><a href="#cb9-12"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>visitno) <span class="sc">+</span></span>
-<span id="cb9-13"><a href="#cb9-13"></a>  <span class="fu">scale_x_discrete</span>(<span class="at">limits =</span> axis_grp_order) <span class="sc">+</span></span>
-<span id="cb9-14"><a href="#cb9-14"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"IgG binding antibody units (MFI - blank)"</span>, <span class="at">x =</span> <span class="st">""</span>) <span class="sc">+</span></span>
-<span id="cb9-15"><a href="#cb9-15"></a>  <span class="fu">scale_y_log10</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">100</span>, <span class="dv">1000</span>, <span class="dv">2000</span>, <span class="dv">3000</span>, <span class="dv">5000</span>, <span class="dv">10000</span>),</span>
-<span id="cb9-16"><a href="#cb9-16"></a>                <span class="at">label =</span> <span class="fu">c</span>(<span class="st">"&lt; 100"</span>, <span class="dv">1000</span>, <span class="dv">2000</span>, <span class="dv">3000</span>, <span class="dv">5000</span>, <span class="dv">10000</span>)) <span class="sc">+</span></span>
-<span id="cb9-17"><a href="#cb9-17"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
-<span id="cb9-18"><a href="#cb9-18"></a>  <span class="fu">theme</span>(<span class="at">panel.background =</span> <span class="fu">element_rect</span>(<span class="at">color=</span><span class="st">"black"</span>), <span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a>mock_bama_example<span class="sc">$</span>grp_response <span class="ot">=</span> <span class="fu">if_else</span>(mock_bama_example<span class="sc">$</span>response <span class="sc">==</span> <span class="dv">0</span>, </span>
+<span id="cb18-2"><a href="#cb18-2"></a>                                         <span class="st">"Negative"</span>, </span>
+<span id="cb18-3"><a href="#cb18-3"></a>                                         mock_bama_example<span class="sc">$</span>rx_code)</span>
+<span id="cb18-4"><a href="#cb18-4"></a></span>
+<span id="cb18-5"><a href="#cb18-5"></a><span class="fu">set.seed</span>(<span class="dv">14</span>) <span class="co"># this keeps the jitter consistent each time</span></span>
+<span id="cb18-6"><a href="#cb18-6"></a></span>
+<span id="cb18-7"><a href="#cb18-7"></a>mag_bp_v2  <span class="ot">=</span> <span class="fu">ggplot</span>(<span class="at">data =</span> mock_bama_example, <span class="fu">aes</span>(<span class="at">x =</span> rx_code, <span class="at">y =</span> <span class="fu">pmax</span>(<span class="dv">100</span>, delta), <span class="at">color =</span> grp_response)) <span class="sc">+</span></span>
+<span id="cb18-8"><a href="#cb18-8"></a>  <span class="fu">geom_boxplot</span>(<span class="at">data =</span> <span class="fu">subset</span>(mock_bama_example, response <span class="sc">==</span> <span class="dv">1</span>), <span class="at">show.legend =</span> F, <span class="at">outlier.colour =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
+<span id="cb18-9"><a href="#cb18-9"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">shape =</span> grp_response, <span class="at">group =</span> rx_code), <span class="at">position =</span> <span class="fu">position_jitter</span>(<span class="at">width =</span> <span class="fl">0.2</span>)) <span class="sc">+</span></span>
+<span id="cb18-10"><a href="#cb18-10"></a>  <span class="fu">scale_colour_manual</span>(<span class="st">""</span>, <span class="at">values =</span> hvtn_pl_colors) <span class="sc">+</span></span>
+<span id="cb18-11"><a href="#cb18-11"></a>  <span class="fu">scale_shape_manual</span>(<span class="st">""</span>, <span class="at">values =</span> hvtn_pl_shapes) <span class="sc">+</span></span>
+<span id="cb18-12"><a href="#cb18-12"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>visitno) <span class="sc">+</span></span>
+<span id="cb18-13"><a href="#cb18-13"></a>  <span class="fu">scale_x_discrete</span>(<span class="at">limits =</span> axis_grp_order) <span class="sc">+</span></span>
+<span id="cb18-14"><a href="#cb18-14"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"IgG binding antibody units (MFI - blank)"</span>, <span class="at">x =</span> <span class="st">""</span>) <span class="sc">+</span></span>
+<span id="cb18-15"><a href="#cb18-15"></a>  <span class="fu">scale_y_log10</span>(<span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">100</span>, <span class="dv">1000</span>, <span class="dv">2000</span>, <span class="dv">3000</span>, <span class="dv">5000</span>, <span class="dv">10000</span>),</span>
+<span id="cb18-16"><a href="#cb18-16"></a>                <span class="at">label =</span> <span class="fu">c</span>(<span class="st">"&lt; 100"</span>, <span class="dv">1000</span>, <span class="dv">2000</span>, <span class="dv">3000</span>, <span class="dv">5000</span>, <span class="dv">10000</span>)) <span class="sc">+</span></span>
+<span id="cb18-17"><a href="#cb18-17"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb18-18"><a href="#cb18-18"></a>  <span class="fu">theme</span>(<span class="at">panel.background =</span> <span class="fu">element_rect</span>(<span class="at">color=</span><span class="st">"black"</span>), <span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="response-magnitude-box-plots---version-2" class="slide level2">
@@ -671,7 +1066,7 @@ $ response      &lt;dbl&gt; 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1
 <li>To do before final figure: remove panel (strip) labels</li>
 </ul>
 
-<img data-src="hvtn-ggplot2-workshop_files/figure-revealjs/unnamed-chunk-13-1.png" width="960" class="r-stretch"><div class="cell">
+<img data-src="hvtn-ggplot2-workshop_files/figure-revealjs/exercise-4-mag-pl-1.png" width="960" class="r-stretch"><div class="cell">
 
 </div>
 </section>
