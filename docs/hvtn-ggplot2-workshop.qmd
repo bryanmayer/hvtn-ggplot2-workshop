@@ -1,0 +1,919 @@
+---
+title: "Visualizations with ggplot2"
+author: Bryan Mayer
+date: 2022-10-26
+format: 
+  revealjs:
+    smaller: true
+    slide-number: true
+editor: visual
+---
+
+## R setup {visibility="hidden"}
+
+```{r pres-setup}
+library(dplyr)
+library(ggplot2)
+library(cowplot)
+library(countdown)
+mock_bama_example = subset(hvtnReports::mock_bama, antigen == "ag_b" & isotype == "IgG")
+```
+
+## Getting Started
+
+-   Download the workshop materials to follow along: 
+    - <https://tinyurl.com/hvtn-ggplot2-workshop>
+-   Unzip the folder.
+-   Load the project and open `ggplot2-worksheet-hvtn2022.Rmd`
+    -   The presentation link is in the Rmd.
+    -   Follow instructions in first chunk:
+        -   Make sure you are in the correct directory.
+        -   `ggplot2` is the only required library for the exercises.
+        -   Load in data: `mock_bama_example`
+
+## Code and Attribution
+
+-   #### Many, many people have made ggplot2 tutorials!
+
+    -   <https://pkg.garrickadenbuie.com/gentle-ggplot2>
+    -   <https://ggplot.library.duke.edu/slides/>
+
+-   Tidyverse help page: <https://ggplot2.tidyverse.org/reference>
+
+-   Hadley Wickham's text: [**R for Data Science**](https://r4ds.had.co.nz/data-visualisation.html)
+
+The presentation and code are publicly available on GitHub: <https://github.com/bryanmayer/hvtn-ggplot2-workshop>
+
+## Goal today -- Template HVTN figure
+
+![](ex-figure.png){fig-align="center" width="110%"}
+
+## Roadmap
+
+-   ggplot2 basics
+-   Building ggplots with examples.
+-   Construct HVTN BAMA magnitude plot.
+-   If time, piece together full HVTN figure.
+
+## ggplot2 - the quintessential example
+
+**Basic template:**
+
+```{r syntax-ex, eval = F, echo = T}
+ggplot(data = <DATA>) + 
+  <GEOM_FUNCTION>(mapping = aes(<MAPPINGS>))
+
+```
+
+**In action:**
+
+```{r first-ex, echo = T, fig.width=6,fig.height=3}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, color = class))
+
+```
+
+## ggplot2 vs. base R plot
+
+-   For simple plots, base plot can be useful.
+    -   Many R packages and objects use `plot()` on the backend, so knowledge helpful.
+-   The grammar of ggplot2 eases extension into complex plots.
+    -   Ex. mapping of colors and legend generation is automatic within ggplot2.
+
+```{r base-pl, echo = T, fig.height = 5, fig.width = 6, fig.align = "center"}
+#| output-location: column
+#| layout-valign: top
+#| fig-width: 9
+
+par(mfrow = c(1,2))
+
+plot(mpg$displ, mpg$hwy)
+
+plot(x = mpg[mpg$class == "compact", ]$displ, 
+     y =mpg[mpg$class == "compact", ]$hwy, 
+     col = "orange", xlim = c(1.5, 7),
+     ylab = "hwy", xlab = "displ")   
+    
+points(x = mpg[mpg$class == "2seater", ]$displ, 
+       y = mpg[mpg$class == "2seater", ]$hwy, 
+       col = "red")
+    
+legend(x = 3, y = 40, c("compact", "2seater"), 
+       col = c("orange", "red"), pch = 1)
+
+```
+
+## ggplot2 Basic Grammar
+
+```{r aes-map, eval = F, echo = T}
+# explicitly stating 'mapping = aes()' is uncommon. "data = " necessary for geom assignments.
+plA = ggplot(data = <DATA>, aes(<MAPPINGS>)) + 
+  <GEOM_FUNCTION>()
+
+plB = ggplot(aes(<MAPPINGS>)) + 
+  <GEOM_FUNCTION>(data = <DATA>)
+
+plC = ggplot(data = <DATA>) + 
+  <GEOM_FUNCTION>(aes(<MAPPINGS>))
+
+plD = ggplot() + 
+  <GEOM_FUNCTION>(data = <DATA>, aes(<MAPPINGS>))
+```
+
+::: {style="font-size: 0.725em"}
+-   `ggplot()` function initializes/creates a new plot.
+-   `+` is a ggplot2 operator (function) used to build a plot over function layers.
+-   `<GEOM_FUNCTION>()` (ex. `geom_point()` scatterplot) draws a geometry on the plot. I.e., 'plot type'(s).
+-   `data` argument for setting a data set and `aes()` function sets aesthetic mappings by variable.
+    -   Within `ggplot()` sets global mappings across all plots.
+    -   Within `geom_**()` will supersede global assignment but not apply to other geoms (local).
+-   ggplot2 plot objects can be saved as a variables.
+    -   Layers can be added later to a ggplot2 object.
+    -   Advanced: The internals of the ggplot2 object can be manipulated.
+    -   Advanced: Multiple ggplot2 objects can be stored in a list (automation).
+:::
+
+## Common Geometries
+
+::: columns
+::: {.column width="60%"}
+```{r ex-geoms}
+#| output-location: column-fragment
+#| fig-height: 10
+#| fig-align: left
+
+base = ggplot(data = mpg, aes(x = displ, y = hwy)) 
+pl1 = base + geom_point() + ggtitle("geom_point")
+pl2 = base + geom_line() + ggtitle("geom_line")
+pl3 = base + geom_smooth(se = F) + ggtitle("geom_smooth")
+pl4 = base + geom_count(se = F) + ggtitle("geom_count")
+pl5 = ggplot(data = mpg, aes(x = hwy)) + geom_histogram() + ggtitle("geom_histogram")
+pl6 = ggplot(data = mpg, aes(x = class, y = hwy)) + geom_boxplot() + ggtitle("geom_boxplot")
+
+plot_grid(pl1, pl2, pl6, pl5, pl3, pl4, ncol = 2)
+
+```
+:::
+
+::: {.column width="30%"}
+::: {style="font-size: 0.9em"}
+|       Type        |          Function          |
+|:-----------------:|:--------------------------:|
+|   Scatter/Point   |       `geom_point()`       |
+|       Line        |       `geom_line()`        |
+|     Box plot      |      `geom_boxplot()`      |
+|     Bar plot      | `geom_bar()`, `geom_col()` |
+|     Histogram     |     `geom_histogram()`     |
+|      Density      |      `geom_density()`      |
+| Regression/Spline |      `geom_smooth()`       |
+|       Text        |       `geom_text()`        |
+| Vert./Horiz. Line |     `geom_{vh}line()`      |
+|  Jittered Point   |      `geom_jitter()`       |
+|       Count       |       `geom_count()`       |
+:::
+
+<small> <https://eric.netlify.com/2017/08/10/most-popular-ggplot2-geoms/> </small>
+:::
+:::
+
+## Layering (combining) Geometries
+
+Plots with multiple geometries can be quickly made by layering.
+
+```{r comb-geom-setup, echo = T}
+base_boxplot = ggplot(data = mpg, aes(x = class, y = hwy)) 
+base_point = ggplot(data = mpg, aes(x = displ, y = hwy)) 
+```
+
+```{r comb-geom-pl}
+#| fig-align: center
+
+pl1 = base_point + geom_point() + geom_smooth(se = F) + ggtitle("base_point + geom_point() + geom_smooth()")
+pl2 = base_boxplot + geom_boxplot() + geom_point() + ggtitle("base_boxplot + geom_boxplot() + geom_point()")
+
+plot_grid(pl1, pl2, ncol = 1)
+
+```
+
+## Aesthetic Mappings
+
+::: columns
+::: {.column width="60%"}
+-   Aesthetic mappings within `aes()` link data to an aesthetic.
+
+-   Mappings depend on plot geometries.
+
+    -   Check individual help files for information on them (ex., `?geom_text`).
+    -   Common source of error, but error message usually informative.
+
+    `> base_boxplot + geom_histogram()`
+
+    > Error in `f()`: ! stat_bin() can only have an x or y aesthetic. Run `rlang::last_error()` to see where the error occurred.
+:::
+
+::: {.column width="40%"}
+#### Common Aesthetics
+
+|    Aesthetic     | `aes()` Argument |
+|:----------------:|:----------------:|
+|      x-axis      |       `x`        |
+|      y-axis      |       `y`        |
+|  Color outline   |     `color`      |
+|    Color fill    |      `fill`      |
+| Point shape/type |     `shape`      |
+|    Point size    |      `size`      |
+|     Opacity      |     `alpha`      |
+|    Line type     |    `linetype`    |
+|       Text       |     `label`      |
+:::
+:::
+
+## Aesthetic Settings vs. Mappings
+
+-   **Setting**: an aesthetic independent of data, assigned outside of the `aes()` argument.
+    -   This must be assigned within the appropriate geometry.
+    -   Assigning a setting within `aes()` is a data mapping, ggplot2 will assume this a variable with a single value.
+
+```{r setting-ex,  eval = F, echo = T}
+
+ggplot(data = mpg, aes(x = displ, y = hwy)) + geom_point(aes(color = "blue"))
+
+ggplot(data = mpg, aes(x = displ, y = hwy)) + geom_point(color = "blue")
+
+ggplot(data = mpg, aes(x = displ, y = hwy, color = class)) + geom_point()
+
+```
+
+```{r setting-pl, fig.align = "center", fig.width=13}
+col_map_pl = ggplot(data = mpg, aes(x = displ, y = hwy, color = class)) + geom_point()
+col_set_pl = ggplot(data = mpg, aes(x = displ, y = hwy)) + geom_point(color = "blue")
+col_set_pl_wrong = ggplot(data = mpg, aes(x = displ, y = hwy)) + geom_point(aes(color = "blue"))
+plot_grid(col_set_pl_wrong, col_set_pl, col_map_pl, nrow = 1)
+
+```
+
+## Continuous vs. Discrete Data
+
+::: {style="font-size: 0.75em"}
+
+-   Aesthetic mappings depend on type of data.
+-   ggplot2 will assume numeric classes are continuous.
+    -   If the aesthetics requires a certain data, an informative error will display.
+        -   Depending on geometry, aesthetics may only take one type of data (ex. linetype must be categorical class).
+    -   If the aesthetic is flexible, the plot may appear odd (potentially with warning).
+-   **You can wrap variables with functions within `aes()` calls.**
+    -   Ex. `aes(y = log10(magnitude))`, `aes(y = pmax(1, magnitude))`.
+    -   Trick: Wrap numeric variables in `factor()` if need discrete mapping.
+:::
+
+```{r cns-bp, eval = F, echo = T}
+ggplot(data = mpg, aes(x = cyl, y = hwy)) + geom_boxplot()
+ggplot(data = mpg, aes(x = factor(cyl), y = hwy)) + geom_boxplot()
+
+```
+
+```{r cns-bp-pl, fig.align = "center", fig.width=13}
+bp_pl_wrong = ggplot(data = mpg, aes(x = cyl, y = hwy)) + geom_boxplot()
+bp_pl_right = ggplot(data = mpg, aes(x = factor(cyl), y = hwy)) + geom_boxplot()
+plot_grid(bp_pl_wrong, bp_pl_right)
+
+```
+
+## Boxplot example (mpg) - setup
+
+Question: Did highway mpg (`hwy`) improve between 1999 and 2008 (`year`)?
+
+-   Data fields: `hwy` `year` (which is x?, which is y?)
+
+-   Geometry? `geom_boxplot`
+
+-   Mappings: let's map year to color.
+
+**Take 5 minutes to make this plot. Work with your neighbor.**
+
+::: fragment
+```{r countdown1}
+
+countdown(
+  minutes = 5,
+  #padding = "1px", margin = "5%", 
+  font_size = "1em"
+)
+```
+:::
+
+## Box plot example (mpg) - v1
+
+```{r exercise-1, echo = T, fig.cap = "Why Factor?"}
+
+mpg_base = ggplot(mpg, aes(x = factor(year), y = hwy, colour = factor(year))) +
+  geom_boxplot()
+
+mpg_base
+```
+
+## Scale functions
+
+```{r scale-syntax, echo = T, eval = F}
+ggplot(data = <DATA>, aes(<MAPPINGS>)) + 
+  <GEOM_FUNCTION>()> +
+  <SCALE_FUNCTION>()
+
+```
+
+-   Scale functions: 'transformation' of the aesthetic mapping.
+    -   Specific mapping for each level of the data (ex. level 1 <=> "green").
+-   Scale function inputs:
+    -   First argument (`name`) is always the element (legend or axis) title. Default to variable name.
+    -   General arguments: `limits`, `breaks`, `labels`
+        - Customize legend and axes ticks and labels.
+    -   A way to apply transformations to the data as they are plotted.
+-   Generating of high quality plots often requires manipulation of the scale functions.
+- Types: `scale_*_discrete()`, `scale_*_manual()`, `scale_*_continuous()`
+
+## Discrete and Manual Scale Functions
+
+::: {style="font-size: 0.625em"}
+-   Discrete scales (`scale_*_discrete()`): tinkering with palettes, labels, and breaks.
+    -   Adjusting discrete x- or y-axis (`scale_x_discrete`, `scale_y_discrete`) is not always intuitive (e.g., use limits instead of breaks).
+-   Manual scales (`scale_*_manual`): explicit mapping of data level to a setting.
+    -   Make sure breaks and labels match as expected.
+    -   `scale_color_manual(breaks = c("A", "B"), labels = c("A", "B"), values = c("red", "blue"))`
+
+:::
+
+::: {style="font-size: 0.75em"}
+```{r scale-map, echo = T, fig.height=3.5}
+#| output-location: fragment
+#| fig-align: left
+
+ggplot(data = mpg, 
+       aes(x = displ, y = hwy, colour = factor(cyl))) +
+  geom_point() +
+  scale_color_manual("cylinder #", breaks = c(4, 5, 6, 8),
+                     labels = paste(c(4, 5, 6, 8), "cylinder"),
+                     values = c("red", "green", "purple", "black"))
+  
+```
+:::
+
+## Manual labeling
+
+::: {style="font-size: 0.75em"}
+
+-   Use named vectors for consistent repeated scale mappings.
+    -   Ex. Same vaccine group color and label assignments across many plots.
+    -   Note: Use \` \` for non-standard R column names.
+-   Not shown here: reference data frame (or list) linking breaks, labels, colors
+    -   `breaks = dataframe$breaks, labels = dataframe$labels, values = dataframe$colors`
+:::
+
+```{r scale-manual, echo = T}
+#| output-location: column
+#| layout-valign: top
+#| fig-align: right
+#| fig-width: 10
+
+cyl_colors = c(`4` = "red", `5` = "green", 
+               `6` = "purple", `8` = "black")
+
+cyl_labels =  paste(c(4, 5, 6, 8), "cylinder")
+names(cyl_labels) = c(4, 5, 6, 8)
+
+ggplot(data = mpg, 
+       aes(x = displ, y = hwy, 
+           colour = factor(cyl))) +
+  geom_point() +
+  scale_color_manual("cylinder #", 
+                     values = cyl_colors,
+                     labels = cyl_labels)
+
+```
+
+## Continuous Scales
+
+::: {style="font-size: 0.75em"}
+
+-   Continuous scale manipulation tends to apply to continuous data mapped to axes.
+    -   Common exceptions: heat maps, point size mapping.
+-   The default x- and y-axis scales are `scale_x_continuous` and `scale_y_continuous`.
+    -   Most common alternative, log-transform: `scale_x_log10` and `scale_y_log10`.
+    -   Plotting on the log-scale vs. log-transformed data (units are different).
+    -   Other transformations are possible.
+-   More info: <https://ggplot2.tidyverse.org/reference/index.html#section-scales>
+
+:::
+
+::: columns
+::: {.column width="40%"}
+
+```{r cns-scales, echo = T, eval = F}
+ggplot(data = mpg, 
+       aes(x = displ, y = hwy)) +
+  geom_point() +
+  scale_y_log10()
+
+ggplot(data = mpg, 
+       aes(x = displ, y = log10(hwy))) +
+  geom_point()
+
+```
+
+:::
+
+::: {.column width="60%"}
+
+
+```{r cns-log-pl}
+#| fig-width: 10
+#| fig-align: right
+
+pl_log = ggplot(data = mpg, aes(x = displ, y = hwy)) +
+  geom_point() +
+  scale_y_log10(breaks = c(15, 20, 30, 40))
+
+log_pl = ggplot(data = mpg, aes(x = displ, y = log10(hwy))) +
+  geom_point() +
+  scale_y_continuous(breaks = log10(c(15, 20, 30, 40)))
+
+plot_grid(pl_log, log_pl, nrow = 1)
+
+```
+
+:::
+
+:::
+
+## Coordinate functions
+
+::: {style="font-size: 0.725em"}
+-   Coordinate functions adjust the coordinate system of the plot.
+    -   Not direct transformation to the data: different than scale mappings. Important when summary measures (e.g., median) are computed by ggplot2.
+    -  **Always read the warnings.**
+-   Common coordinate functions:
+    -   `coord_cartesian()`: default. Limit arguments can be used to zoom plot (Example).
+    -   `coord_flip()`: flips x and y on the plots.
+    -   `coord_polar()`: use polar coordinate system.
+    -   `coord_fixed()`: fixes aspect ratio, make 'square' plots.
+:::
+
+::: columns
+::: {.column width="45%"}
+
+```{r, echo = T, eval = F}
+coord_ex = data.frame(
+  grp = rep(LETTERS[1:2], each = 10), 
+  y = rnorm(20))
+
+ggplot(coord_ex, aes(x = grp, y = y)) + 
+  geom_boxplot() + 
+  scale_y_continuous(limits = c(0, NA))
+
+ggplot(coord_ex, aes(x = grp, y = y)) + 
+  geom_boxplot() + 
+  coord_cartesian(ylim = c(0, NA))
+```
+
+:::
+::: {.column width="55%"}
+
+```{r coord-pl}
+#| fig-width: 11
+#| fig-align: right
+
+set.seed(10)
+coord_ex = data.frame(
+  grp = rep(LETTERS[1:2], each = 10), 
+  y = rnorm(20))
+
+pl1 = ggplot(coord_ex, aes(x = grp, y = y))+ geom_boxplot() + scale_y_continuous(limits = c(0, NA))
+pl2 = ggplot(coord_ex, aes(x = grp, y = y))+ geom_boxplot() + coord_cartesian(ylim = c(0, NA))
+
+plot_grid(pl1+annotate("text", label = "Data removed\noutside limits", x = 1, y = 0.8, size = 5), 
+          pl2+annotate("text", label = "Plot zoomed", x = 1, y = 0.8, size = 5), nrow=1)
+```
+
+:::
+
+:::
+
+## Making a nice looking plot.
+
+-   Adjusted title and labels for axes and legends.
+    -   `scale_y_continuous("y title", breaks = 5*3:9)`.
+    -   Set breaks and labels within the appropriate scale function.
+-   Another way to change legend and axes titles:
+    -   `labs(x = "x title", y = "y title" color = "legend title")`
+    -   Alternative axes title: `xlab()`, `ylab()`
+-   `theme()`:
+    -   There are lots of plot settings to adjust (see `?theme`).
+    -   General themes can be made and applied across multiple plots.
+        -   ggplot2 also supplies themes: `theme_bw()` `theme_classic()`
+
+## Box plot example (mpg) - Improve
+
+Take 5 minutes. Work with your neighbor.
+
+-   **Make the labels nicer.**
+    -   label x-axis as 'year', y-axis as 'highway mpg'
+-   **Map year to color.**
+    -   make 1998 = red, 2008 = black
+    -   then 1998 = black, 2008 = red.
+    -   Can you generalize this task?
+-   **Show the raw data as points. (Bonus: jitter them.)**
+-   **Apply `+ theme_classic()`**
+
+::: fragment
+```{r countdown2}
+
+countdown(
+  minutes = 5,
+  #padding = "1px", margin = "5%", 
+  font_size = "1em"
+)
+```
+:::
+
+## Box plot example (mpg) - finalize
+
+::: {style="font-size: 0.75em"}
+```{r exercise-2, echo = T, fig.cap = "Questions?"}
+#| fig.align = "center",
+#| fig.height = 4
+
+mpg_colors = c(`1999` = "black", `2008` = "red")
+
+mpg_final = mpg_base +
+  geom_point(position = position_jitter(width = 0.2)) +
+  scale_color_manual(values = mpg_colors) +
+  labs(x = "year", y = "highway mpg", colour = "year") +
+  theme_classic()
+
+mpg_final
+```
+:::
+
+## Faceting
+
+::: {style="font-size: 0.7em"}
+-   `facet_grid` or `facet_wrap` create multiple panels across a variable level.
+-   `facet_grid`: structured, explicit mapping of rows and col (rectangular matrix).
+    -   2-var ex. `+ facet_grid(rows = vars(var1), cols = vars(var2))` or `+ facet_grid(var1 ~ var2)`
+    -   ex. `+ facet_grid(rows = vars(var1))` or `+ facet_grid(var1 ~ .)`
+    -   ex. `+ facet_grid(cols = vars(var1))` or `+ facet_grid(. ~ var1)`
+-   `facet_wrap`: sequence of panels across variable or layered variables.
+    -   ex. `+ facet_wrap(vars(var1))` or `+ facet_wrap(~ var1)`
+:::
+
+-   **Last mpg exercise: use facteting to investigate whether 1998 vs. 2008 highway mpg varies by car `class`.**
+
+
+## Box plot example (mpg) - faceting
+
+```{r facet-ex, echo = T}
+mpg_final +
+  facet_wrap(~ class) 
+```
+
+## HVTN Example
+
+Figure can be built in 3 parts. Focus just on magnitude plot.
+
+![](ex-figure-markup.png){fig-align="center" width="800" height="600"}
+
+## HVTN - Data and Setup
+
+::: {style="font-size: 0.9em"}
+```{r, echo = T}
+
+dplyr::glimpse(mock_bama_example)
+
+```
+:::
+
+We have fixed colors and shapes, let's assign those now:
+
+```{r, echo = T}
+
+hvtn_pl_colors = c(T1 =  "#1749FF", T2 = "#D92321", T3 = "#0AB7C9", P = "#787873", Negative = "#8F8F8F")
+hvtn_pl_shapes = c(T1 =  16, T2 = 16, T3 = 16, P = 16, Negative = 2)
+axis_grp_order = c("T1", "T2", "T3", "P")
+
+```
+
+## Magnitude plot - Mapping (discussion)
+
+::: columns
+::: {.column width="60%"}
+
+![](ex-figure-magnitude.png)
+
+::: {style="font-size: 0.8em"}
+```{r}
+dplyr::glimpse(mock_bama_example)
+```
+:::
+
+:::
+
+::: {.column width="40%"}
+
+-   Geometry?
+-   Aesthetic Data Mappings
+    - Which data fields are used in the plot?
+    - How are they mapped?
+    - Any transformations?
+-   Facets?
+-   Challenges?
+
+:::
+
+:::
+
+## Magnitude plot - Exercise
+
+-   **Geometry:** `geom_boxplot`, `geom_point` (jitter)
+-   **Data fields:** magnitude (`delta`), groups (`rx_code`), response (`response`)
+-   **aes mappings:** group to color, `response` to shape
+-   **Transformations:** magnitude is truncated and plotted on the log10-scale.
+-   **Facets:** visits (`visitno`)
+-   Challenges:
+    -   Separate color for 'Negative' within each group (and legend).
+    -   Exclude non-responders from box plots.
+-   **Exercise: make magnitude box plot from worksheet skeleton.**
+    -   "Exercise 3 - HVTN Magnitude plot" ~ line 221
+    -   Hints provided on the worksheet in the plot skeleton.
+    -   Ignore color issue for Negative.
+
+## Magnitude plot - Skeleton (Line 221)
+
+```{r, echo = T, eval = F}
+
+ggplot(mock_bama_example, aes(...)) +
+  geom_boxplot(..., show.legend = F, outlier.colour = NA) +
+  geom_point(..., position = position_jitter(width = 0.2)) +
+  scale_shape_manual(values = c(2, 16)) +
+  scale_color_manual(values = hvtn_pl_colors) +
+  scale_x_discrete(limits = ...) +
+  scale_y_...() +
+  facet_wrap(...) +  
+  labs(...) +
+  theme_classic() 
+
+```
+
+-   **Geometry:** `geom_boxplot`, `geom_point` (jitter)
+-   **Data fields:** magnitude (`delta`), groups (`rx_code`), response (`response`)
+-   **aes mappings:** group to color, `response` to shape
+-   **Transformations:** magnitude is truncated and plotted on the log10-scale.
+-   **Facets:** visits (`visitno`)
+- Ignore negative responder color mapping.
+
+
+```{r countdown3}
+#| output-location: fragment
+countdown(
+  minutes = 5,
+  #padding = "1px", margin = "5%", 
+  font_size = "1em"
+)
+```
+
+## V1 Plot Answer {visibility="hidden"}
+
+```{r, echo = T}
+
+mag_bp_v1 = ggplot(data = mock_bama_example, aes(x = rx_code, y = pmax(100, delta), 
+                                                 color = rx_code)) +
+  geom_boxplot(data = subset(mock_bama_example, response == 1), 
+               show.legend = F, 
+               outlier.colour = NA) +
+  geom_point(aes(shape = factor(response), group = rx_code), 
+             position = position_jitter(width = 0.2)) +
+  scale_colour_manual("", values = hvtn_pl_colors) +
+  scale_shape_manual("", values = c(2, 16)) +
+  scale_x_discrete(limits = axis_grp_order) +
+  scale_y_log10(breaks = c(100, 1000, 2000, 3000, 5000, 10000)) +
+  facet_wrap(~ visitno) +
+  labs(y = "IgG binding antibody units (MFI - blank)", x = "") +
+  theme_classic() 
+
+```
+
+## Response magnitude plot - v1
+
+```{r exercise-3-mag}
+
+mag_bp_v1
+
+```
+
+## Response magnitude box plots - tinkering
+
+-   Rethink the mapping: `rx_code` to x-axis, but need new map to color.
+
+```{r exercise-4-mag, echo = T}
+
+mock_bama_example$grp_response = ifelse(mock_bama_example$response == 0, 
+                                         "Negative", 
+                                         mock_bama_example$rx_code)
+
+```
+
+-   Update the plot using this variable for color mapping.
+
+```{r countdown4}
+#| output-location: fragment
+countdown(
+  minutes = 3,
+  #padding = "1px", margin = "5%", 
+  font_size = "1em"
+)
+```
+
+## Magnitude plot - v2 Code
+
+```{r, echo = T}
+
+set.seed(14) # this keeps the jitter consistent each time
+
+mag_bp_v2 = ggplot(data = mock_bama_example, 
+       aes(x = rx_code, y = pmax(100, delta), color = grp_response)) +
+  geom_boxplot(data = subset(mock_bama_example, response == 1), 
+               show.legend = F, outlier.colour = NA) +
+  geom_point(aes(shape = grp_response, group = rx_code), 
+             position = position_jitter(width = 0.2)) +
+  scale_colour_manual("", values = hvtn_pl_colors) +
+  scale_shape_manual("", values = hvtn_pl_shapes) +
+  scale_x_discrete(limits = axis_grp_order) +
+  scale_y_log10(breaks = c(100, 1000, 2000, 3000, 5000, 10000),
+                label = c("< 100", 1000, 2000, 3000, 5000, 10000)) +
+  facet_wrap(~visitno) +
+  labs(y = "IgG binding antibody units (MFI - blank)", x = "") +
+  theme_classic() +
+  theme(panel.background = element_rect(color="black"), legend.position = "bottom")
+
+```
+
+## Response magnitude box plots - version 2
+
+::: {style="font-size: 0.75em"}
+-   To do before final figure: tinkering with `theme()`.
+    -   Remove panel (strip) labels for stacking. `strip.text = element_blank()`
+    -   Wrap individual plots with boxes. `panel.background = element_rect(color="black")`.
+:::
+
+```{r exercise-4-mag-pl, fig.align="center"}
+mag_bp_v2 
+```
+
+## Finalized magnitude figure
+
+```{r mag-final}
+
+mag_final = ggplot(data = mock_bama_example, 
+                   aes(x = rx_code, y = pmax(100, delta), color = grp_response)) +
+  stat_boxplot(data = subset(mock_bama_example, response == 1), 
+               geom = "errorbar", width = 0.5, show.legend = F) +
+  geom_boxplot(data = subset(mock_bama_example, response == 1), 
+               show.legend = F, outlier.colour = NA) +
+  geom_point(aes(shape = grp_response, group = rx_code), 
+             position = position_jitter(width = 0.2)) +
+  scale_colour_manual("", values = hvtn_pl_colors) +
+  scale_shape_manual("", values = hvtn_pl_shapes) +
+  scale_x_discrete(limits = axis_grp_order) +
+  scale_y_log10(breaks = c(100, 1000, 2000, 3000, 5000, 10000),
+                label = c("< 100", 1000, 2000, 3000, 5000, 10000)) +
+  facet_wrap(~ visitno) +
+  labs(y = "IgG binding antibody units (MFI - blank)", x = "") +
+  theme_classic() +
+  theme(strip.background = element_blank(), panel.background = element_rect(color="black"),
+        legend.position = "bottom", axis.ticks.x = element_blank(), strip.text = element_blank())
+
+
+mag_final
+
+```
+
+## Finishing HVTN Example
+
+Walkthrough parts 2 and 3. Code is in the worksheet.
+
+![](ex-figure-markup.png){fig-align="center" width="800" height="600"}
+
+## Responder total tally - step 1
+
+Approach: Summarize the data and get the text aligned on a plot.
+
+```{r resp-txt-skeleton, echo = T}
+#| output-location: slide
+
+response_rate_summary = mock_bama_example %>%
+  group_by(rx_code, antigen, visitno) %>%
+  summarize(
+    Total = n(),
+    Responders = sum(response),
+    rr = mean(response),
+    .groups = "drop"
+  )
+
+rr_txt_pl_skeleton = ggplot(response_rate_summary, 
+                            aes(x = rx_code, y = 1, 
+                                label = paste(Responders, Total, sep = "\n"))) +
+  geom_text(size = 3) +
+  scale_x_discrete(limits = axis_grp_order) +
+  scale_y_continuous(breaks = 1, labels = "Responders\nTotal", expand = c(0, 0)) +
+  facet_wrap(~visitno) +
+  labs(y = "") 
+
+rr_txt_pl_skeleton
+
+```
+
+## Responder total tally - finalize
+
+Use `theme()` to remove most plot elements. The axes coordinates are invisible but remain aligned with group.
+
+```{r resp-txt-pl, echo = T}
+#| output-location: slide
+
+rr_txt_pl = rr_txt_pl_skeleton +
+  theme(panel.background = element_blank(), axis.text.x = element_blank(),
+        axis.title.x = element_blank(), axis.ticks = element_blank(),
+        strip.background = element_blank(), strip.text = element_blank(), 
+        axis.text.y = element_text(size = 10), plot.margin = margin())
+
+
+rr_txt_pl
+```
+
+## Response rate barplot
+
+-   Two potential approaches (both in worksheet):
+    -   Use `stat_summary_bin` applied to the full dataset.
+    -   Use summarized data from tallies and `geom_bar(stat = 'identity')` (see worksheet).
+
+```{r resp-bar-plot, echo = T}
+#| output-location: slide
+
+resp_rate1 = ggplot(mock_bama_example, aes(x = rx_code, y = 100*response, fill = rx_code)) +
+  stat_summary_bin(fun = "mean", geom = "bar") +
+  scale_fill_manual(values = hvtn_pl_colors, guide = "none") +
+  scale_x_discrete(limits = axis_grp_order) +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 102)) +
+  labs(y = "Response rate (%)", x = "") +
+  facet_wrap(~visitno, labeller = 
+               as_labeller(c(`5` = "Visit 5",
+                             `7` = "Visit 7",
+                             `11` = "Visit 11"))) +
+  theme_classic() +
+  theme(strip.background = element_blank(), panel.background = element_rect(color="black"),
+        plot.title = element_text(size = 12)) + 
+  ggtitle("HVTN Trial IgG Antibody Responses to ag_b")
+
+resp_rate1 
+
+```
+
+## Final Figure
+
+- Use `cowplot::plot_grid`
+
+```{r final-pl, echo = T}
+#| output-location: slide
+#| fig-align: center
+#| fig-height: 6
+#| fig-width: 7
+
+plot_grid(
+  resp_rate1 + theme(axis.text.x = element_blank(),  
+                     axis.ticks.x = element_blank()), 
+  rr_txt_pl + theme(plot.margin = margin(t = -20)), 
+  mag_final, 
+  rel_heights = c(18, 1.75, 30), 
+  nrow = 3, align = "v", axis = "lr")
+
+```
+
+# Extra slides {visibility="uncounted"}
+
+## V1 Plot Answer {visibility="uncounted"}
+
+```{r, echo = T, eval = F}
+
+ggplot(data = mock_bama_example, aes(x = rx_code, y = pmax(100, delta), 
+                                                 color = rx_code)) +
+  geom_boxplot(data = subset(mock_bama_example, response == 1), 
+               show.legend = F, 
+               outlier.colour = NA) +
+  geom_point(aes(shape = factor(response), group = rx_code), 
+             position = position_jitter(width = 0.2)) +
+  scale_colour_manual("", values = hvtn_pl_colors) +
+  scale_shape_manual("", values = c(2, 16)) +
+  scale_x_discrete(limits = axis_grp_order) +
+  scale_y_log10(breaks = c(100, 1000, 2000, 3000, 5000, 10000)) +
+  facet_wrap(~ visitno) +
+  labs(y = "IgG binding antibody units (MFI - blank)", x = "") +
+  theme_classic() 
+
+```
