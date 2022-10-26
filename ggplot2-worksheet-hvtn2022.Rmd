@@ -1,0 +1,409 @@
+---
+title: "ggplot2 Exercises (HVTN workshop 2022)"
+author: "<your name>"
+output: html_document
+date: "2022-10-26"
+editor_options: 
+  chunk_output_type: console
+---
+
+The presentation is here: http://bryanmayer.com/hvtn-ggplot2-workshop/hvtn-ggplot2-workshop.html
+
+# 0 - Setup
+
+```{r setup}
+# check getwd() for correct directory, setwd() here if not already here.
+# OR: Session -> Set Working Directory -> To Source File Location
+
+library(ggplot2)
+mock_bama_example = read.csv("mock_bama_example.csv")
+
+```
+
+# 1 - ggplot2 Background
+
+## Initial examples
+
+```{r}
+
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, color = class))
+
+```
+
+```{r base-r-example}
+
+plot(mpg[mpg$class == "compact", ]$displ, mpg[mpg$class == "compact", ]$hwy, 
+     col = "orange", xlim = c(1.5, 7), ylab = "hwy", xlab = "displ")   
+
+points(mpg[mpg$class == "2seater", ]$displ, mpg[mpg$class == "2seater", ]$hwy, col = "red")
+
+legend(x = 5, y = 40, c("compact", "2seater"), col = c("orange", "red"), pch = 1)
+
+```
+
+## Geom examples
+
+```{r}
+base = ggplot(data = mpg, aes(x = displ, y = hwy)) 
+base + geom_point() + ggtitle("geom_point")
+base + geom_line() + ggtitle("geom_line")
+base + geom_smooth(se = F) + ggtitle("geom_smooth")
+base + geom_count(se = F) + ggtitle("geom_count")
+ggplot(data = mpg, aes(x = hwy)) + geom_histogram() + ggtitle("geom_histogram")
+ggplot(data = mpg, aes(x = class, y = hwy)) + geom_boxplot() + ggtitle("geom_boxplot")
+
+```
+
+## Layering geometries
+
+```{r}
+base_boxplot = ggplot(data = mpg, aes(x = class, y = hwy)) 
+base_point = ggplot(data = mpg, aes(x = displ, y = hwy)) 
+
+# se = F removes CI bands for the example
+base_point + geom_point() + geom_smooth(se = F) + ggtitle("base_point + geom_point() + geom_smooth()")
+
+base_boxplot + geom_boxplot() + geom_point() + ggtitle("base_boxplot + geom_boxplot() + geom_point()")
+
+```
+
+## aes mappings vs. settings
+
+```{r}
+
+ggplot(data = mpg, aes(x = displ, y = hwy)) + geom_point(aes(color = "blue"))
+
+ggplot(data = mpg, aes(x = displ, y = hwy, color = class)) + geom_point()
+
+ggplot(data = mpg, aes(x = displ, y = hwy)) + geom_point(color = "blue")
+
+# global settings doesn't affect anything
+ggplot(data = mpg, aes(x = displ, y = hwy), colour = "blue") + geom_point()
+
+```
+
+## Continuous vs. discrete (boxplot)
+
+```{r}
+ggplot(data = mpg, aes(x = cyl, y = hwy)) + geom_boxplot()
+ggplot(data = mpg, aes(x = factor(cyl), y = hwy)) + geom_boxplot()
+```
+
+## Exercise 1 - Boxplots with mpg
+
+```{r}
+
+# IN CLASS EXERCISE: REPLACE ... TO GENERATE PLOT
+
+mpg_base = ggplot(...) + ...
+
+mpg_base
+
+```
+
+## Scale examples
+
+### Discrete and manual
+
+```{r}
+
+ggplot(data = mpg, aes(x = displ, y = hwy, colour = factor(cyl))) +
+  geom_point() +
+  scale_color_manual("cylinder #", breaks = c(4, 5, 6, 8),
+                     labels = paste(c(4, 5, 6, 8), "cylinder"),
+                     values = c("red", "green", "purple", "black"))
+
+```
+
+
+```{r scales-named-vectors}
+
+# explicit naming for named vector
+# use ` ` for non-standard names
+cyl_colors = c(`4` = "red", `5` = "green",`6` = "purple", `8` = "black")
+
+# assign names after making the vector
+cyl_labels =  paste(c(4, 5, 6, 8), "cylinder")
+names(cyl_labels) = c(4, 5, 6, 8)
+
+ggplot(data = mpg, 
+       aes(x = displ, y = hwy, colour = factor(cyl))) +
+  geom_point() +
+  scale_color_manual("cylinder #", values = cyl_colors,
+                     labels = cyl_labels)
+
+
+```
+
+```{r scales-data-frames}
+# alternative approach not discussed in class
+
+cyl_mapping = data.frame(
+  breaks = c(4, 5, 6, 8),
+  labels = paste(c(4, 5, 6, 8), "cylinder"),
+  colors = c("red", "green", "purple", "black")
+)
+
+ggplot(data = mpg, 
+       aes(x = displ, y = hwy, colour = factor(cyl))) +
+  geom_point() +
+  scale_color_manual("cylinder #", values = cyl_mapping$colors,
+                     breaks = cyl_mapping$breaks, labels =  cyl_mapping$labels)
+
+```
+
+### Continuous scales - log plots
+
+```{r logpl-vs-pllog}
+
+ggplot(data = mpg, aes(x = displ, y = hwy)) +
+  geom_point() +
+  scale_y_log10(breaks = c(15, 20, 30, 40))
+
+ggplot(data = mpg, aes(x = displ, y = log10(hwy))) +
+  geom_point() +
+  scale_y_continuous(breaks = log10(c(15, 20, 30, 40)))
+
+```
+
+## Coordinate functions (zooming)
+
+```{r}
+
+set.seed(10)
+coord_ex = data.frame(grp = rep(LETTERS[1:2], each = 10), y = rnorm(20))
+
+ggplot(coord_ex, aes(x = grp, y = y))+ geom_boxplot() + scale_y_continuous(limits = c(0, NA))
+ggplot(coord_ex, aes(x = grp, y = y))+ geom_boxplot() + coord_cartesian(ylim = c(0, NA))
+```
+
+## Exercise 2 - Improving exercise 1
+
+```{r}
+
+# IN CLASS EXERCISE: REPLACE ... TO GENERATE PLOT
+# USE mpg_base CREATED IN EXERCISE 1
+
+mpg_final = mpg_base +
+  ...
+  theme_classic()
+
+mpg_final
+
+```
+
+## Faceting Exercise
+
+```{r}
+
+## INTERACTIVE EXERCISE
+
+mpg_final + 
+  facet_wrap(...)
+
+```
+
+# 2. HVTN Magnitude Figure
+
+## Explore data and setup
+
+```{r}
+
+dplyr::glimpse(mock_bama_example)
+
+hvtn_pl_colors = c(T1 =  "#1749FF", T2 = "#D92321", T3 = "#0AB7C9", P = "#787873", Negative = "#8F8F8F")
+hvtn_pl_shapes = c(T1 =  16, T2 = 16, T3 = 16, P = 16, Negative = 2)
+axis_grp_order = c("T1", "T2", "T3", "P")
+
+```
+
+## Exercise 3 - HVTN Magnitude plot
+
+```{r}
+
+# IN CLASS EXERCISE: REPLACE ... TO GENERATE PLOT
+
+ggplot(mock_bama_example, aes(...)) +
+  geom_boxplot(..., show.legend = F, outlier.colour = NA) +
+  geom_point(..., position = position_jitter(width = 0.2)) +
+  scale_shape_manual(values = c(2, 16)) +
+  scale_color_manual(values = hvtn_pl_colors) +
+  scale_x_discrete(limits = ...) +
+  scale_y_...() +
+  facet_wrap(...) +  
+  labs(...) +
+  theme_classic() 
+
+
+```
+
+## EXERCISE 4 - New variable for color
+
+```{r}
+
+mock_bama_example$grp_response = ifelse(mock_bama_example$response == 0, 
+                                         "Negative", 
+                                         mock_bama_example$rx_code)
+
+
+```
+
+```{r}
+
+## COPY AND PASTE ANSWER FROM EXERCISE 3, 
+## USE grp_response for color mapping
+
+```
+
+## Finalize 
+
+```{r}
+
+mag_final = ggplot(data = mock_bama_example, 
+                   aes(x = rx_code, y = pmax(100, delta), color = grp_response)) +
+  stat_boxplot(data = subset(mock_bama_example, response == 1), 
+               geom = "errorbar", width = 0.5, show.legend = F) +
+  geom_boxplot(data = subset(mock_bama_example, response == 1), 
+               show.legend = F, outlier.colour = NA) +
+  geom_point(aes(shape = grp_response, group = rx_code), 
+             position = position_jitter(width = 0.2)) +
+  scale_colour_manual("", values = hvtn_pl_colors) +
+  scale_shape_manual("", values = hvtn_pl_shapes) +
+  scale_x_discrete(limits = axis_grp_order) +
+  scale_y_log10(breaks = c(100, 1000, 2000, 3000, 5000, 10000),
+                label = c("< 100", 1000, 2000, 3000, 5000, 10000)) +
+  facet_wrap(~ visitno) +
+  labs(y = "IgG binding antibody units (MFI - blank)", x = "") +
+  theme_classic() +
+  theme(strip.background = element_blank(), panel.background = element_rect(color="black"),
+        legend.position = "bottom", axis.ticks.x = element_blank(), strip.text = element_blank())
+
+mag_final
+
+
+```
+
+# 4. Remaining Components of HVTN Figure
+
+## Responder tallies
+
+### Summarize data first
+
+```{r}
+library(dplyr)
+response_rate_summary = mock_bama_example %>%
+  group_by(rx_code, antigen, visitno) %>%
+  summarize(
+    Total = n(),
+    Responders = sum(response),
+    rr = mean(response),
+    .groups = "drop"
+  )
+
+```
+
+### Make "plot"
+
+The trick is involves plotting using geom_text then stripping almost every plot element.
+
+```{r}
+
+rr_txt_pl_skeleton = ggplot(response_rate_summary, 
+                            aes(x = rx_code, y = 1, 
+                                label = paste(Responders, Total, sep = "\n"))) +
+  geom_text(size = 3) +
+  scale_x_discrete(limits = axis_grp_order) +
+  scale_y_continuous(breaks = 1, labels = "Responders\nTotal", expand = c(0, 0)) +
+  facet_wrap(~visitno) +
+  labs(y = "") 
+
+rr_txt_pl_skeleton
+
+rr_txt_pl = rr_txt_pl_skeleton +
+  theme(panel.background = element_blank(), axis.text.x = element_blank(),
+        axis.title.x = element_blank(), axis.ticks = element_blank(),
+        strip.background = element_blank(), strip.text = element_blank(), 
+        axis.text.y = element_text(size = 10), plot.margin = margin())
+
+
+rr_txt_pl
+```
+
+## Response rate plot
+
+For both approaches. Use of the `labeller` to get the correct names for the facet labels. Alternatively, the visitno variable can be used to create a new variable in the data that uses these levels.
+
+### Approach 1
+
+Uses the stat_summary_bin function. Using a trick that response proportion = mean(response). Equivalent: mean(100*response) = response %.
+
+```{r}
+
+resp_rate1 = ggplot(mock_bama_example, aes(x = rx_code, y = 100*response, fill = rx_code)) +
+  stat_summary_bin(fun = "mean", geom = "bar") +
+  scale_fill_manual(values = hvtn_pl_colors, guide = "none") +
+  scale_x_discrete(limits = axis_grp_order) +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 102)) +
+  labs(y = "Response rate (%)", x = "") +
+  facet_wrap(~visitno, labeller = 
+               as_labeller(c(`5` = "Visit 5",
+                             `7` = "Visit 7",
+                             `11` = "Visit 11"))) +
+  theme_classic() +
+  theme(strip.background = element_blank(), panel.background = element_rect(color="black"),
+        plot.title = element_text(size = 12)) + 
+  ggtitle("HVTN Trial IgG Antibody Responses to ag_b")
+
+
+resp_rate1
+
+```
+
+### Approach 2
+
+Use summarized data.
+
+```{r resp_rate_alt}
+
+resp_rate2 = ggplot(response_rate_summary, aes(x = rx_code, y = 100*rr, fill = rx_code)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = hvtn_pl_colors, guide = "none") +
+  scale_x_discrete(limits = axis_grp_order) +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 102)) +
+  facet_wrap(~visitno, labeller = 
+               as_labeller(c(`5` = "Visit 5",
+                             `7` = "Visit 7",
+                             `11` = "Visit 11"))) +
+  labs(y = "Response rate (%)", x = "") +
+  theme_classic() +
+  theme(strip.background = element_blank(), panel.background = element_rect(color="black"))
+
+resp_rate2
+
+```
+
+
+## Putting it together
+
+```{r}
+library(cowplot)
+
+# need to turn off x-axis in bar plot.
+plot_grid(
+  resp_rate1 + theme(axis.text.x = element_blank(),  
+                     axis.ticks.x = element_blank()), 
+  rr_txt_pl +theme(plot.margin = margin(t = -20)),  #handles annoying clipping issue
+  mag_final, 
+  rel_heights = c(18, 1.75, 30), 
+  nrow = 3, align = "v", axis = "lr")
+
+
+# to get the SOURCE text appended on the bottom:
+ # + draw_figure_label(label = paste("SOURCE: SCHARP bmayer ", Sys.time()), 
+ #    size = 12, position = "bottom.left")
+
+```
+
+
+
