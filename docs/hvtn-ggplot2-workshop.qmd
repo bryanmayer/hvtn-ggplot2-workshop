@@ -248,7 +248,7 @@ ggplot(data = mpg, aes(x = displ, y = hwy, color = class)) + geom_point()
 col_map_pl = ggplot(data = mpg, aes(x = displ, y = hwy, color = class)) + geom_point()
 col_set_pl = ggplot(data = mpg, aes(x = displ, y = hwy)) + geom_point(color = "blue")
 col_set_pl_wrong = ggplot(data = mpg, aes(x = displ, y = hwy)) + geom_point(aes(color = "blue"))
-plot_grid(col_map_pl, col_set_pl, col_set_pl_wrong, nrow = 1)
+plot_grid(col_set_pl_wrong, col_set_pl, col_map_pl, nrow = 1)
 
 ```
 
